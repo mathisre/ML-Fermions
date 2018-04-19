@@ -29,9 +29,20 @@ int main(){
 
     double learning_rate = 0.2;
 
+        std::vector<double> X=std::vector<double>();
+        std::vector<double> Hidden=std::vector<double>();
+        std::vector<double> a_bias=std::vector<double>();
+        std::vector<double> b_bias=std::vector<double>();
+        std::vector<std::vector<double>> w=std::vector<std::vector<double>>;
 
 
-
+    X.resize(numberOfVisibleNodes);
+    a_bias.resize(numberOfVisibleNodes);
+    Hidden.resize(numberOfHiddenNodes);
+    b_bias.resize(numberOfHiddenNodes);
+    for(int i=0; i<numberOfVisibleNodes; i++){
+            w[i].resize(numberOfHiddenNodes);
+    }
     double alpha            = 0.50;      // Variational parameter.
     double beta             = 1.0;            // for interacting case: beta=2.82843
     int numberOfSteps       = (int) 1e+6;   // NUmber of Monte Carlo steps
@@ -53,8 +64,8 @@ int main(){
 
     System* system = new System();
     system->setHamiltonian              (new HarmonicOscillator(system, omega, omega_z));
-    system->setWaveFunction             (new SimpleGaussian(system, numberOfHiddenNodes, numberOfVisibleNodes));
-    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles, sigma, interactionSize, timeStep, bins, bucketSize));
+    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles, sigma, X, Hidden, a_bias, b_bias, w, interactionSize, timeStep, bins, bucketSize));
+    system->setWaveFunction             (new SimpleGaussian(system, numberOfHiddenNodes, numberOfVisibleNodes, X, Hidden, a_bias, b_bias, w,));
     system->openDataFile                (filename);
     system->setEquilibrationFraction    (equilibration);
     system->setStepLength               (stepLength);
@@ -76,7 +87,7 @@ int main(){
 
 
     auto start = std::chrono::system_clock::now();
-    system->runMetropolisSteps          (numberOfSteps);
+    system->runMetropolisSteps          (numberOfSteps, X, Hidden, a_bias, b_bias, w,);
     system->printOut();
 
 

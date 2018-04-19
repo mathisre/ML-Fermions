@@ -15,35 +15,36 @@
 
 using namespace std;
 
-bool System::metropolisStepBruteForce() { //Brute Force Metropolis method
-    int randparticle=Random::nextInt(m_numberOfParticles);
+void System::metropolisStepBruteForce(vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Brute Force Metropolis method
+    int randparticle=Random::nextInt(m_initialState->getNumberOfVisibleNodes());
 
-    vector <double> r_old=m_particles.at(randparticle).getPosition();
-    vector <double> r_new(m_numberOfDimensions);
+    vector <double> X_old=X;
+    vector <double> X_new(m_initialState->getNumberOfVisibleNodes());
+
+
 
 //choose a new move
-   for(int d = 0; d < m_numberOfDimensions; d++){
-        r_new[d] = r_old[d] + m_stepLength*(Random::nextDouble()-0.5);
+   for(int d = randparticle; d < m_numberOfDimensions; d++){
+        X_new[d] = X_old[d] + m_stepLength*(Random::nextDouble()-0.5);
 //        cout << "R_old = " << r_old[d] << endl;
 //        cout << "R_new = " << r_new[d] << endl;
     }
 
-    m_particles.at(randparticle).setPosition(r_new);
-    updateDistanceMatrix(m_particles, randparticle);
+//    m_particles.at(randparticle).setPosition(r_new); UPDATE FUNCTION DISTANCE MATRIX
+//    updateDistanceMatrix(m_particles, randparticle);
 
-    double psi_new = m_waveFunction->evaluate(m_particles);
+    double psi_new = m_waveFunction->evaluate(X_new, Hidden, a_bias, b_bias, w);
 
 
     if (Random::nextDouble() <= psi_new * psi_new / (m_psiOld * m_psiOld)){ // Accept the new move
         m_psiOld = psi_new;
 
-        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(getParticles()));
-        return true;
+        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X_new,Hidden,a_bias,b_bias,w));
+
+        X=X_new;
     }
     else{ // Don't accept accept the new move
-        m_particles.at(randparticle).setPosition(r_old);
         updateDistanceMatrix(m_particles, randparticle);
-        return false;
     }
 }
 
@@ -97,7 +98,7 @@ bool System::metropolisStepImportance() { //Importance Sampling method
     }
 }
 
-void System::runMetropolisSteps(int numberOfMetropolisSteps) {
+void System::runMetropolisSteps(int numberOfMetropolisSteps,vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
     //Principal function of the whole code. Here the Monte Carlo method is
     m_particles                 = m_initialState->getParticles();
     m_sampler                   = new Sampler(this);
@@ -108,18 +109,19 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps) {
     m_sampler->setNumberOfMetropolisSteps(numberOfMetropolisSteps);
 
     // Initial values
-    setDistanceMatrix(computematrixdistance(m_particles));
-    m_psiOld = m_waveFunction->evaluate(m_particles);
-    getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(m_particles));
-    setQuantumForce(m_waveFunction->QuantumForce(m_particles));
+  // do it again  setDistanceMatrix(computematrixdistance(m_particles));
+    m_psiOld = m_waveFunction->evaluate(X,Hidden, a_bias, b_bias,w);
+    getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X,Hidden, a_bias, b_bias,w));
+  // update  setQuantumForce(m_waveFunction->QuantumForce(m_particles));
 
     setHistogram();
 
     for (int i=0; i < numberOfMetropolisSteps; i++) {
-//        bool acceptedStep = metropolisStepBruteForce();   //run the system with Brute Force Metropolis
-        bool acceptedStep = metropolisStepImportance();     //run the system with Importance Sampling
+        bool acceptedStep = metropolisStepBruteForce(X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
+    //    bool acceptedStep = metropolisStepImportance();     //run the system with Importance Sampling
 
         m_sampler->sample(acceptedStep);                    //sample results and write them to file
+// INSERT STOCHASTIC GRADIENT DESCENT HERE
         m_sampler->writeToFile();
     }
 }

@@ -6,13 +6,14 @@
 #include "../system.h"
 #include <cmath>
 #include <random>
+#include <vector>
 
 using std::cout;
 using std::endl;
 
 using namespace std;
 
-RandomUniform::RandomUniform(System* system, int numberOfHiddenNodes, int numberOfVisibleNodes, double sigma, double interactionSize, double timeStep, int bins, double bucketSize)   :
+RandomUniform::RandomUniform(System* system, int numberOfHiddenNodes, int numberOfVisibleNodes, double sigma,vector<double>& m_X, vector<double>& m_Hidden, vector<double>& m_a_bias, vector<double>& m_b_bias, vector<std::vector<double>>& m_w,  double interactionSize, double timeStep, int bins, double bucketSize)   :
         InitialState(system) {
     assert(numberOfHiddenNodes > 0 && numberOfVisibleNodes > 0);
 
@@ -30,14 +31,10 @@ RandomUniform::RandomUniform(System* system, int numberOfHiddenNodes, int number
     m_system->setBins(bins);
     m_system->setBucketSize(bucketSize);
 
-    setupInitialState();
+    setupInitialState(m_X, m_Hidden, m_a_bias, m_b_bias, m_w); //delete m_hidden
 }
 
-void RandomUniform::setupInitialState() {
-    m_X.resize(m_numberOfVisibleNodes);
-    m_a_bias.resize(m_numberOfVisibleNodes);
-    m_Hidden.resize(m_numberOfHiddenNodes);
-    m_b_bias.resize(m_numberOfHiddenNodes);
+void RandomUniform::setupInitialState(vector<double>& m_X, vector<double>& m_Hidden, vector<double>& m_a_bias, vector<double>& m_b_bias, vector<std::vector<double>>& m_w) {
 
    double sigma_0=0.001;
 

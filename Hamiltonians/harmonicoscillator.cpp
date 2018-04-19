@@ -4,7 +4,9 @@
 #include "../system.h"
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
+#include <vector>
 
+using namespace std;
 using std::cout;
 using std::endl;
 
@@ -19,12 +21,12 @@ HarmonicOscillator::HarmonicOscillator(System* system, double omega, double omeg
 
 }
 
-double HarmonicOscillator::computeLocalEnergy(std::vector<Particle> &particles) {
+double HarmonicOscillator::computeLocalEnergy(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     double potentialEnergy = 0;
     double kineticEnergy   = 0;
 
-    kineticEnergy = -0.5*m_system->getWaveFunction()->computeDoubleDerivative(particles);   //analytical double derivative
+    kineticEnergy = -0.5*m_system->getWaveFunction()->computeDoubleDerivative(X,Hidden,a_bias,b_bias,w);   //analytical double derivative
 //    kineticEnergy = -0.5*m_system->getHamiltonian()->computeNumericalDoubleDerivative(particles);   //numerical double derivative
 
 //compute the Potential, from the choices made by setting beta and omega_z at the beginning the potential is spherical or elliptical

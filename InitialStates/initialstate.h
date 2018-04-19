@@ -31,11 +31,11 @@ protected:
     int m_numberOfHiddenNodes=0;
     double m_sigma =0;
     double m_sigma_squared =0;
-    std::vector<double> m_X=std::vector<double>();
-    std::vector<double> m_Hidden=std::vector<double>();
-    std::vector<double> m_a_bias=std::vector<double>();
-    std::vector<double> m_b_bias=std::vector<double>();
-    std::vector<std::vector<double>> m_w=std::vector<std::vector<double>>;
+//    std::vector<double> m_X=std::vector<double>();
+//    std::vector<double> m_Hidden=std::vector<double>();
+//    std::vector<double> m_a_bias=std::vector<double>();
+//    std::vector<double> m_b_bias=std::vector<double>();
+//    std::vector<std::vector<double>> m_w=std::vector<std::vector<double>>;
 
 };
 

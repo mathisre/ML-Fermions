@@ -11,7 +11,7 @@
 using namespace std;
 using std::vector;
 
-SimpleGaussian::SimpleGaussian(System* system, double alpha, double beta) :
+SimpleGaussian::SimpleGaussian(System* system, double numberOfHiddenNodes, double numberOfVisibleNodes, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) :
     WaveFunction(system) {
     assert(alpha >= 0);
     assert(beta >= 0);
@@ -23,7 +23,7 @@ SimpleGaussian::SimpleGaussian(System* system, double alpha, double beta) :
     //m_parameters.push_back(beta);
 }
 
-double SimpleGaussian::evaluate(std::vector<double> &m_X) {
+double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     // WF is just the product of the individual wavefunctions
     // Divide by the wf of the old particle and multiply in the wf of the new one
@@ -68,7 +68,7 @@ return exp(-r_squared)*f;
 }
 
 
-double SimpleGaussian::computeDoubleDerivative(std::vector<class Particle>& particles) {
+double SimpleGaussian::computeDoubleDerivative(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 //function to compute tha analytical double drivative
     double one=0;
     double interaction=0;

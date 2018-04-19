@@ -6,8 +6,8 @@
 class System {
 public:
     bool metropolisStepImportance          ();
-    bool metropolisStepBruteForce();
-    void runMetropolisSteps         (int numberOfMetropolisSteps);
+    void metropolisStepBruteForce(std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+    void runMetropolisSteps         (int numberOfMetropolisSteps, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w);
     void setNumberOfParticles       (int numberOfParticles);
     void setNumberOfDimensions      (int numberOfDimensions);
     void setStepLength              (double stepLength);
