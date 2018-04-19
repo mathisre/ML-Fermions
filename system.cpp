@@ -39,35 +39,35 @@ void System::metropolisStepBruteForce(vector<double> &X, vector<double> Hidden, 
     if (Random::nextDouble() <= psi_new * psi_new / (m_psiOld * m_psiOld)){ // Accept the new move
         m_psiOld = psi_new;
 
+        X=X_new;
         getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X_new,Hidden,a_bias,b_bias,w));
 
-        X=X_new;
     }
     else{ // Don't accept accept the new move
-        updateDistanceMatrix(m_particles, randparticle);
+        //updateDistanceMatrix(m_particles, randparticle); //update
     }
 }
 
 
-bool System::metropolisStepImportance() { //Importance Sampling method
-    int randparticle=Random::nextInt(m_numberOfParticles);
-    vector <double> r_old=m_particles.at(randparticle).getPosition();
-    vector <double> r_new(m_numberOfDimensions);
+void System::metropolisStepImportance(vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Importance Sampling method
+    int randparticle=Random::nextInt(m_initialState->getNumberOfVisibleNodes());
+    vector <double> X_old=X;
+    vector <double> X_new(m_initialState->getNumberOfVisibleNodes());
 
-    vector <vector<double>> QF_old(m_numberOfDimensions,vector<double>(m_numberOfParticles));
-    vector <vector<double>> QF_new(m_numberOfDimensions,vector<double>(m_numberOfParticles));
+    vector <vector<double>> QF_old(m_numberOfDimensions,vector<double>(m_numberOfParticles)); //UPDATE
+    vector <vector<double>> QF_new(m_numberOfDimensions,vector<double>(m_numberOfParticles));//UPDATE
     QF_old=m_QuantumForce;
 
 //Choose a new move
-   for(int d = 0; d < m_numberOfDimensions; d++){
-        r_new[d] = r_old[d] + 0.5*m_QuantumForce[d][randparticle]*m_timeStep + m_sqrtTimeStep*(Random::nextGaussian(0, 1));
+   for(int d = randparticle; d < m_numberOfDimensions; d++){
+        X_new[d] = X_old[d] + 0.5*m_QuantumForce[d][randparticle]*m_timeStep + m_sqrtTimeStep*(Random::nextGaussian(0, 1));
 //        cout << r_new[d] - r_old[d] << endl;
 //        cout << "R_old = " << r_old[d] << endl;
 //        cout << "R_new = " << r_new[d] << endl;
     }
 
-    m_particles.at(randparticle).setPosition(r_new);
-    setQuantumForce(m_waveFunction->QuantumForce(m_particles));
+   // m_particles.at(randparticle).setPosition(r_new);
+    setQuantumForce(m_waveFunction->QuantumForce(m_particles)); //UPDATE
     QF_new = m_QuantumForce;
     updateDistanceMatrix(m_particles, randparticle);
 
@@ -80,21 +80,21 @@ bool System::metropolisStepImportance() { //Importance Sampling method
         }
 
     GreensFunction = exp(GreensFunction);
-    double psi_new = m_waveFunction->evaluate(m_particles);
+    double psi_new = m_waveFunction->evaluate(X,Hidden,a_bias,b_bias, w);
 
     // Accept  new move
     if (Random::nextDouble() <= GreensFunction*psi_new * psi_new / (m_psiOld * m_psiOld)){
         m_psiOld = psi_new;
-        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(getParticles()));
-        return true;
+        X=X_new;
+        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X,Hidden,a_bias,b_bias, w));
     }
 
     // Don't accept new move
     else{
-        m_particles.at(randparticle).setPosition(r_old);
+       // m_particles.at(randparticle).setPosition(r_old);
+        X=X_old; //useless?
         setQuantumForce(QF_old);
-        updateDistanceMatrix(m_particles, randparticle);
-        return false;
+        updateDistanceMatrix(m_particles, randparticle); //UPDATE
     }
 }
 
@@ -118,7 +118,7 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps,vector<double> X, ve
 
     for (int i=0; i < numberOfMetropolisSteps; i++) {
         bool acceptedStep = metropolisStepBruteForce(X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
-    //    bool acceptedStep = metropolisStepImportance();     //run the system with Importance Sampling
+    //    bool acceptedStep = metropolisStepImportance(X,Hidden, a_bias, b_bias,w);     //run the system with Importance Sampling
 
         m_sampler->sample(acceptedStep);                    //sample results and write them to file
 // INSERT STOCHASTIC GRADIENT DESCENT HERE
