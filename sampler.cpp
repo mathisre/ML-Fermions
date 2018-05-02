@@ -22,7 +22,7 @@ void Sampler::setNumberOfMetropolisSteps(int steps) {
     m_numberOfMetropolisSteps = steps;
 }
 
-void Sampler::sample(bool acceptedStep) {
+void Sampler::sample(bool acceptedStep, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 //Function to sample the data
     if (m_stepNumber == 0) {
         m_cumulativeEnergy          = 0;
@@ -31,19 +31,20 @@ void Sampler::sample(bool acceptedStep) {
         m_cumulativeWFderivMultEloc = 0;
     }
     if (acceptedStep==true){
-        m_energy=m_system->getHamiltonian()->computeLocalEnergy(m_system->getParticles());
+        m_energy=m_system->getHamiltonian()->computeLocalEnergy(interaction,X,Hidden,a_bias,b_bias,w);
         // Sampling of energy moved to metropolisstep
         m_acceptedNumber++;
-        m_WFderiv = 0;
-        double beta = m_system->getWaveFunction()->getParameters()[2] / m_system->getWaveFunction()->getParameters()[0];;
-        for (int i = 0; i < m_system->getNumberOfParticles(); i++){
-            for (int d = 0; d < m_system->getNumberOfDimensions() - 1; d++){
-                m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d];
-            }            
-            int d = m_system->getNumberOfDimensions() - 1;
-            m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d] * beta;
-        }
-        m_WFderivMultELoc = m_WFderiv * m_energy;
+//        m_WFderiv = 0;
+
+//        double beta = m_system->getWaveFunction()->getParameters()[2] / m_system->getWaveFunction()->getParameters()[0];;
+//        for (int i = 0; i < m_system->getNumberOfParticles(); i++){
+//            for (int d = 0; d < m_system->getNumberOfDimensions() - 1; d++){
+//                m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d];
+//            }
+//            int d = m_system->getNumberOfDimensions() - 1;
+//            m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d] * beta;
+//        }
+//        m_WFderivMultELoc = m_WFderiv * m_energy;
     }
 
     //cout<<m_energy<<endl;
@@ -51,8 +52,8 @@ void Sampler::sample(bool acceptedStep) {
 //sample if the system is at equilibrium
         m_cumulativeEnergy          += m_energy;
         m_cumulativeEnergySquared   += m_energy*m_energy;
-        m_cumulativeWFderiv         += m_WFderiv;
-        m_cumulativeWFderivMultEloc += m_WFderivMultELoc;
+//        m_cumulativeWFderiv         += m_WFderiv;
+//        m_cumulativeWFderivMultEloc += m_WFderivMultELoc;
 
         // Sometimes crashes
 //        m_system->oneBodyDensity();

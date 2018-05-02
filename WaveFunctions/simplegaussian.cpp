@@ -26,12 +26,12 @@ double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<
 
     double first_sum = 0;
     double prod = 1;
-    int M = m_system->m_initialState->getNumberOfHiddenNodes();
-    int N = m_system->m_initialState->getNumberOfVisibleNodes();
+    int M =Hidden.size();
+    int N =X.size();
     for (int i = 0; i < M; i++){
         first_sum -= (X[i]-a_bias[i])*(X[i]-a_bias[i]);
     }
-    first_sum /= 2*m_system->m_initialState->getSigmaSquared;
+    first_sum /= 2*m_system->getSigma_squared();
 
     first_sum = exp(first_sum);
 
@@ -40,9 +40,9 @@ double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<
         for (int i = 0; i < M; i++){
             second_sum += X[i]*w[i][j];
         }
-        second_sum /= m_system->m_initialState->getSigmaSquared;
+        second_sum /= m_system->getSigma_squared();
 
-        prod *= 1 + exp(b[j] + second_sum);
+        prod *= 1 + exp(b_bias[j] + second_sum);
     }
     return first_sum*prod;
 }
@@ -51,10 +51,10 @@ double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<
 double SimpleGaussian::computeDoubleDerivative(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     // Can probably reuse quantum force term to get the second derivative
-    int NumbOfParticles = m_system->m_initialState->getNumberOfParticles;
+    int NumbOfParticles = m_system->getNumberOfParticles();
 
-    int M = m_system->m_initialState->getNumberOfHiddenNodes();
-    int N = m_system->m_initialState->getNumberOfVisibleNodes();
+    int M = m_system->getNumberOfHiddenNodes();
+    int N = m_system->getNumberOfVisibleNodes();
 
     double large_sum = 0;
     for (int j = 0; j < NumbOfParticles; j++){
@@ -65,19 +65,19 @@ double SimpleGaussian::computeDoubleDerivative(vector<double> X, vector<double> 
             for (int i = 0; i < M; i++){
                 second_sum += X[i]*w[i][j];
             }
-            second_sum /= m_system->m_initialState->getSigmaSquared;
+            second_sum /= m_system->getSigma_squared();
             double exponentials = exp(b_bias[k] + second_sum);
             double third_sum = 0;
 
             for (int i = j; i < j+2; i++){
                 third_sum += w[i][k]*w[i][k];
             }
-            third_sum /= m_system->m_initialState->getSigmaSquared*m_system->m_initialState->getSigmaSquared;
+            third_sum /= m_system->getSigma_squared()*m_system->getSigma_squared();
 
             large_sum += third_sum*exponentials /( (1 + exponentials)*(1+exponentials));
         }
     }
-    return large_sum + (3*NumbOfParticles / m_system->m_initialState->getSigmaSquared);
+    return large_sum + (3*NumbOfParticles / m_system->getSigma_squared());
 }
 
 

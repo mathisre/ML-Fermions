@@ -5,9 +5,9 @@
 
 class System {
 public:
-    void metropolisStepImportance   (std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
-    void metropolisStepBruteForce   (std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
-    void runMetropolisSteps         (int numberOfMetropolisSteps, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w);
+    void metropolisStepImportance   (bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+    void metropolisStepBruteForce   (bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+    void runMetropolisSteps         (int numberOfMetropolisSteps, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w);
     void setNumberOfParticles       (int numberOfParticles);
     void setNumberOfDimensions      (int numberOfDimensions);
     void setStepLength              (double stepLength);
@@ -29,7 +29,7 @@ public:
     int getNumberOfMetropolisSteps()    { return m_numberOfMetropolisSteps; }
     double getEquilibrationFraction()   { return m_equilibrationFraction; }
 
-    double gradientDescent(double initialAlpha, std::string filename, int maxIterations);
+//    double gradientDescent(double initialAlpha, std::string filename, int maxIterations);
 
     double getinteractionSize() const;
     void setinteractionSize(double interactionSize);
@@ -68,11 +68,32 @@ public:
         void oneBodyDensity();
 
 
+
+
 //        int getNumberOfHiddenNodes() const;
 //        void setNumberOfHiddenNodes(int numberOfHiddenNodes);
 
 //        int getNumberOfVisibleNodes() const;
 //        void setNumberOfVisibleNodes(int numberOfVisibleNodes);
+
+        int getNumberOfVisibleNodes() const;
+        void setNumberOfVisibleNodes(int numberOfVisibleNodes);
+
+        int getNumberOfHiddenNodes() const;
+        void setNumberOfHiddenNodes(int numberOfHiddenNodes);
+
+        double getSigma() const;
+        void setSigma(double sigma);
+
+        double getSigma_squared() const;
+        void setSigma_squared(double sigma_squared);
+
+        double getLearningRate() const;
+        void setLearningRate(double learningRate);
+
+        void StochasticGradientDescent(std::vector<double> &a_bias, std::vector<double> &b_bias, std::vector<std::vector<double> > &w);
+        int getNumberOfParameters() const;
+        void setNumberOfParameters(int numberOfParameters);
 
 private:
         int                             m_numberOfParticles = 0;
@@ -86,6 +107,15 @@ private:
     double                          m_sqrtTimeStep = 0;
     int                             m_bins = 0;
     double                          m_bucketSize = 0;
+
+    int m_numberOfVisibleNodes =0;
+    int m_numberOfHiddenNodes=0;
+    double m_sigma =0;
+    double m_sigma_squared =0;
+
+double m_learningRate=0;
+int m_numberOfParameters=0;
+
     std::vector<int>                m_histogram;
     std::vector<std::vector<double>> m_QuantumForce;
     class WaveFunction*             m_waveFunction = nullptr;

@@ -21,26 +21,24 @@ HarmonicOscillator::HarmonicOscillator(System* system, double omega, double omeg
 
 }
 
-double HarmonicOscillator::computeLocalEnergy(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+double HarmonicOscillator::computeLocalEnergy(bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     double potentialEnergy = 0;
     double kineticEnergy   = 0;
+    double interaction_potential=0;
 
     kineticEnergy = -0.5*m_system->getWaveFunction()->computeDoubleDerivative(X,Hidden,a_bias,b_bias,w);   //analytical double derivative
 //    kineticEnergy = -0.5*m_system->getHamiltonian()->computeNumericalDoubleDerivative(particles);   //numerical double derivative
 
 //compute the Potential, from the choices made by setting beta and omega_z at the beginning the potential is spherical or elliptical
-    for (int k = 0; k < m_system->getNumberOfParticles(); k++ ){
-        for (int d = 0; d < m_system->getNumberOfDimensions(); d++){
-            potentialEnergy += m_omega[d]*m_omega[d]*particles.at(k).getPosition()[d]*particles.at(k).getPosition()[d];
+   potentialEnergy=computePotentialEnergy();
 
-        }
-
-    }
-    potentialEnergy *= 0.5;
+if (interaction==true){
+    interaction_potential=computeInteractionPotential();
+}
 
     //cout<<"Kinetic energy = "<<kineticEnergy<<endl;
-    return kineticEnergy + potentialEnergy;
+    return kineticEnergy + potentialEnergy+interaction_potential;
 }
 
 std::vector<double> HarmonicOscillator::omega() const
@@ -53,4 +51,21 @@ void HarmonicOscillator::setOmega(const std::vector<double> &omega)
     m_omega = omega;
 }
 
+double HarmonicOscillator::computeInteractionPotential(){
+    double interaction_potential=0;
+    for(int i=0; i<m_system->getNumberOfParticles(); i++){
+        for(int j=0; j<i; j++){
+            interaction_potential+=m_system->getDistanceMatrixij(i,j);
+        }
+    }
+    return interaction_potential;
+}
 
+
+double HarmonicOscillator::computePotentialEnergy(){
+    double potentialEnergy =0;
+    for (int k = 0; k < m_system->getNumberOfVisibleNodes(); k++ ){
+        potentialEnergy += m_omega[d]*m_omega[d]*X[d]*X[d];
+    }
+    return potentialEnergy * 0.5;
+}

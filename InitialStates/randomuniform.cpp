@@ -13,18 +13,19 @@ using std::endl;
 
 using namespace std;
 
-RandomUniform::RandomUniform(System* system, int numberOfHiddenNodes, int numberOfVisibleNodes, double sigma,vector<double>& m_X, vector<double>& m_Hidden, vector<double>& m_a_bias, vector<double>& m_b_bias, vector<std::vector<double>>& m_w,  double interactionSize, double timeStep, int bins, double bucketSize)   :
+RandomUniform::RandomUniform(System* system, int numberOfParticles, int numberOfDimensions, int numberOfHiddenNodes, int numberOfVisibleNodes, double sigma,vector<double>& m_X, vector<double>& m_Hidden, vector<double>& m_a_bias, vector<double>& m_b_bias, vector<std::vector<double>>& m_w,  double interactionSize, double timeStep, int bins, double bucketSize, double learningRate, int numberOfParameters)   :
         InitialState(system) {
     assert(numberOfHiddenNodes > 0 && numberOfVisibleNodes > 0);
 
+m_system->setLearningRate(learningRate);
+    m_system->setSigma(sigma);
+    m_system->setSigma_squared(sigma*sigma);
+m_system->setNumberOfParameters(numberOfParameters);
+   m_system->setNumberOfHiddenNodes(numberOfHiddenNodes);
+   m_system->setNumberOfVisibleNodes(numberOfVisibleNodes);
 
-    setSigma(sigma);
-    setSigma_squared(sigma*sigma);
-
-   setNumberOfHiddenNodes(numberOfHiddenNodes);
-   setNumberOfVisibleNodes(numberOfVisibleNodes);
-
-    //m_system->setNumberOfParticles(numberOfParticles);
+    m_system->setNumberOfParticles(numberOfParticles);
+    m_system->setNumberOfDimensions(numberOfDimensions);
     m_system->setinteractionSize(interactionSize);
     m_system->setTimeStep(timeStep);
     m_system->setSqrtTimeStep(sqrt(timeStep));
@@ -37,21 +38,23 @@ RandomUniform::RandomUniform(System* system, int numberOfHiddenNodes, int number
 void RandomUniform::setupInitialState(vector<double>& m_X, vector<double>& m_Hidden, vector<double>& m_a_bias, vector<double>& m_b_bias, vector<std::vector<double>>& m_w) {
 
    double sigma_0=0.001;
+    int M = m_system->getNumberOfVisibleNodes();
+    int N= m_system->getNumberOfHiddenNodes();
 
-    for (int i=0; i < m_numberOfVisibleNodes; i++) {
+    for (int i=0; i < M; i++) {
      m_X.push_back(Random::nextDouble()-0.5);
     }
 
-    for(int i=0; i<m_numberOfVisibleNodes; i++){
+    for(int i=0; i<M; i++){
         m_a_bias.push_back(Random::nextGaussian(0,sigma_0));
     }
 
-    for(i=0; i<m_numberOfHiddenNodes; i++){
+    for(i=0; i<N; i++){
         m_b_bias.push_back(Random::nextGaussian(0,sigma_0));
     }
 
-    for(int i=0; i<m_numberOfVisibleNodes; i++){
-        for(j=0;j<m_numberOfHiddenNodes; j++){
+    for(int i=0; i<M; i++){
+        for(j=0;j<N; j++){
             m_w.push_back(Random::nextGaussian(0,sigma_0));
         }
     }

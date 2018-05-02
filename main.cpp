@@ -26,7 +26,7 @@ int main(){
 
    double sigma =0.1;
 
-
+int numberOfParameters=numberOfVisibleNodes+numberOfHiddenNodes+numberOfVisibleNodes*numberOfHiddenNodes;
     double learning_rate = 0.2;
 
         std::vector<double> X=std::vector<double>();
@@ -64,7 +64,7 @@ int main(){
 
     System* system = new System();
     system->setHamiltonian              (new HarmonicOscillator(system, omega, omega_z));
-    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles, sigma, X, Hidden, a_bias, b_bias, w, interactionSize, timeStep, bins, bucketSize));
+    system->setInitialState             (new RandomUniform(system, numberOfParticles, numberOfDimensions, sigma, X, Hidden, a_bias, b_bias, w, interactionSize, timeStep, bins, bucketSize,learning_rate,numberOfParameters));
     system->setWaveFunction             (new SimpleGaussian(system, numberOfHiddenNodes, numberOfVisibleNodes, X, Hidden, a_bias, b_bias, w,));
     system->openDataFile                (filename);
     system->setEquilibrationFraction    (equilibration);

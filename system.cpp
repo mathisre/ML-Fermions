@@ -15,19 +15,18 @@
 
 using namespace std;
 
-void System::metropolisStepBruteForce(vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Brute Force Metropolis method
-    int randparticle=Random::nextInt(m_initialState->getNumberOfVisibleNodes());
+void System::metropolisStepBruteForce(bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Brute Force Metropolis method
+    int randparticle=Random::nextInt(getNumberOfParticles());
 
     vector <double> X_old=X;
-    vector <double> X_new(m_initialState->getNumberOfVisibleNodes());
+    vector <double> X_new(getNumberOfVisibleNodes());
 
 
 
 //choose a new move
-   for(int d = randparticle; d < m_numberOfDimensions; d++){
+    int init =randparticle*m_numberOfDimensions;
+   for(int d = init; d < init+3; d++){
         X_new[d] = X_old[d] + m_stepLength*(Random::nextDouble()-0.5);
-//        cout << "R_old = " << r_old[d] << endl;
-//        cout << "R_new = " << r_new[d] << endl;
     }
 
 //    m_particles.at(randparticle).setPosition(r_new); UPDATE FUNCTION DISTANCE MATRIX
@@ -40,7 +39,7 @@ void System::metropolisStepBruteForce(vector<double> &X, vector<double> Hidden, 
         m_psiOld = psi_new;
 
         X=X_new;
-        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X_new,Hidden,a_bias,b_bias,w));
+        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction,X_new,Hidden,a_bias,b_bias,w));
 
     }
     else{ // Don't accept accept the new move
@@ -49,7 +48,7 @@ void System::metropolisStepBruteForce(vector<double> &X, vector<double> Hidden, 
 }
 
 
-void System::metropolisStepImportance(vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Importance Sampling method
+void System::metropolisStepImportance(bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Importance Sampling method
     int randparticle=Random::nextInt(m_initialState->getNumberOfVisibleNodes());
     vector <double> X_old=X;
     vector <double> X_new(m_initialState->getNumberOfVisibleNodes());
@@ -86,7 +85,7 @@ void System::metropolisStepImportance(vector<double> &X, vector<double> Hidden, 
     if (Random::nextDouble() <= GreensFunction*psi_new * psi_new / (m_psiOld * m_psiOld)){
         m_psiOld = psi_new;
         X=X_new;
-        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X,Hidden,a_bias,b_bias, w));
+        getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction,X,Hidden,a_bias,b_bias, w));
     }
 
     // Don't accept new move
@@ -98,7 +97,7 @@ void System::metropolisStepImportance(vector<double> &X, vector<double> Hidden, 
     }
 }
 
-void System::runMetropolisSteps(int numberOfMetropolisSteps,vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+void System::runMetropolisSteps(int numberOfMetropolisSteps,bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
     //Principal function of the whole code. Here the Monte Carlo method is
     m_particles                 = m_initialState->getParticles();
     m_sampler                   = new Sampler(this);
@@ -111,20 +110,65 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps,vector<double> X, ve
     // Initial values
   // do it again  setDistanceMatrix(computematrixdistance(m_particles));
     m_psiOld = m_waveFunction->evaluate(X,Hidden, a_bias, b_bias,w);
-    getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(X,Hidden, a_bias, b_bias,w));
+    getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction, X,Hidden, a_bias, b_bias,w));
   // update  setQuantumForce(m_waveFunction->QuantumForce(m_particles));
 
     setHistogram();
 
     for (int i=0; i < numberOfMetropolisSteps; i++) {
-        bool acceptedStep = metropolisStepBruteForce(X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
+        bool acceptedStep = metropolisStepBruteForce(interaction, X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
     //    bool acceptedStep = metropolisStepImportance(X,Hidden, a_bias, b_bias,w);     //run the system with Importance Sampling
 
-        m_sampler->sample(acceptedStep);                    //sample results and write them to file
+        m_sampler->sample(acceptedStep,interaction,X,Hidden,a_bias,b_bias,w);                    //sample results and write them to file
 // INSERT STOCHASTIC GRADIENT DESCENT HERE
         m_sampler->writeToFile();
     }
 }
+
+
+void System::StochasticGradientDescent(vector<double>& a_bias, vector<double>& b_bias, vector<std::vector<double>>& w){
+
+    for(int i=0; i<m_numberOfVisibleNodes; i++){
+       a_bias[i]-=m_learningRate*gradiente;
+    }
+
+    for(int i=0; i<m_numberOfHiddenNodes; i++){
+       b_bias[i]-=m_learningRate*gradiente;
+    }
+
+    for(int i=0; i<m_numberOfVisibleNodes; i++){
+        for(j=0;j<m_numberOfHiddenNodes; j++){
+            w[i][j]-=m_learningRate*gradiente;
+        }
+    }
+}
+
+int System::getNumberOfParameters() const
+{
+    return m_numberOfParameters;
+}
+
+void System::setNumberOfParameters(int numberOfParameters)
+{
+    m_numberOfParameters = numberOfParameters;
+}
+
+
+vector<double> System::GradientParameters(){
+    vector<double> Gradient(m_numberOfParameters);
+    vector<double> First(m_numberOfVisibleNodes);
+
+
+    for(int i=0; i<m_numberOfVisibleNodes; i++){
+    First+=(X[i]-a_bias[i])/getSigma_squared();
+    Gradient[i]=2*((m_sampler->getCumulativeEnergy()*First[i])/m_sampler->getAcceptedNumber()-m_sampler->getEnergy())
+    }
+
+
+
+}
+
+
 
 
 void System::oneBodyDensity(){
@@ -147,6 +191,16 @@ void System::oneBodyDensity(){
     }
 }
 
+int System::getNumberOfVisibleNodes() const
+{
+    return m_numberOfVisibleNodes;
+}
+
+void System::setNumberOfVisibleNodes(int numberOfVisibleNodes)
+{
+    m_numberOfVisibleNodes = numberOfVisibleNodes;
+}
+
 int System::getNumberOfHiddenNodes() const
 {
     return m_numberOfHiddenNodes;
@@ -167,6 +221,46 @@ void System::setNumberOfVisibleNodes(int numberOfVisibleNodes)
     m_numberOfVisibleNodes = numberOfVisibleNodes;
 }
 
+int System::getNumberOfHiddenNodes() const
+{
+    return m_numberOfHiddenNodes;
+}
+
+void System::setNumberOfHiddenNodes(int numberOfHiddenNodes)
+{
+    m_numberOfHiddenNodes = numberOfHiddenNodes;
+}
+
+double System::getSigma() const
+{
+    return m_sigma;
+}
+
+void System::setSigma(double sigma)
+{
+    m_sigma = sigma;
+}
+
+double System::getSigma_squared() const
+{
+    return m_sigma_squared;
+}
+
+void System::setSigma_squared(double sigma_squared)
+{
+    m_sigma_squared = sigma_squared;
+}
+
+double System::getLearningRate() const
+{
+    return m_learningRate;
+}
+
+void System::setLearningRate(double learningRate)
+{
+    m_learningRate = learningRate;
+}
+
 void System::printOneBodyDensity(string filename){
     ofstream myFile;
     myFile.open(filename);
@@ -181,53 +275,53 @@ void System::setHistogram()
     m_histogram = histogram;
 }
 
-double System::gradientDescent(double initialAlpha, string filename, int maxIterations){
+//double System::gradientDescent(double initialAlpha, string filename, int maxIterations){
 //Gradient descent method to find the optimal variational parameter alpha given an initial parameter initialAlpha
-    int steepestDescentSteps = (int) 1e+5;
-    double alpha = initialAlpha;
-    double beta = getWaveFunction()->getParameters()[2] / getWaveFunction()->getParameters()[0];
-    double lambda = -0.001;
-    int iterations = 0;
-    double energyDerivative = 100;
-    double cumulativeAlpha = 0;
-    double tol = 1e-10;
-    double percentAlphasToSave = 0.3;
-    ofstream myFile;
-    myFile.open(filename);
+//    int steepestDescentSteps = (int) 1e+5;
+//    double alpha = initialAlpha;
+//    double beta = getWaveFunction()->getParameters()[2] / getWaveFunction()->getParameters()[0];
+//    double lambda = -0.001;
+//    int iterations = 0;
+//    double energyDerivative = 100;
+//    double cumulativeAlpha = 0;
+//    double tol = 1e-10;
+//    double percentAlphasToSave = 0.3;
+//    ofstream myFile;
+//    myFile.open(filename);
 
-    while (iterations < maxIterations && fabs(energyDerivative) > tol){
-        vector<double> parameters(3);
-        parameters[0] = alpha;
-        parameters[1] = alpha;
-        parameters[2] = alpha*beta;
-        getWaveFunction()->setParameters(parameters);
-        runMetropolisSteps(steepestDescentSteps);
-        printOut();
-        energyDerivative = findEnergyDerivative();
+//    while (iterations < maxIterations && fabs(energyDerivative) > tol){
+//        vector<double> parameters(3);
+//        parameters[0] = alpha;
+//        parameters[1] = alpha;
+//        parameters[2] = alpha*beta;
+//        getWaveFunction()->setParameters(parameters);
+//        runMetropolisSteps(steepestDescentSteps);
+//        printOut();
+//        energyDerivative = findEnergyDerivative();
 
-        // Make sure we accept enough moves (with interaction can get stuck)
-        if ((double)m_sampler->getAcceptedNumber() / steepestDescentSteps > 0.90){
-            alpha += lambda*energyDerivative;
-            iterations++;
-        }
+//        // Make sure we accept enough moves (with interaction can get stuck)
+//        if ((double)m_sampler->getAcceptedNumber() / steepestDescentSteps > 0.90){
+//            alpha += lambda*energyDerivative;
+//            iterations++;
+//        }
 
-        cout << " New alpha = "  << alpha <<  endl;
-        cout << " Energy derivative = " << energyDerivative << endl;
-        cout << " Iterations = " << iterations << endl;
+//        cout << " New alpha = "  << alpha <<  endl;
+//        cout << " Energy derivative = " << energyDerivative << endl;
+//        cout << " Iterations = " << iterations << endl;
 
-        // Write alpha, mean local energy and st dev to file
-        myFile << alpha << "   "  << getSampler()->getEnergy() << "  " <<
-                  sqrt(getSampler()->getCumulativeEnergySquared() - getSampler()->getEnergy()*getSampler()->getEnergy())/getNumberOfMetropolisSteps() << endl;
+//        // Write alpha, mean local energy and st dev to file
+//        myFile << alpha << "   "  << getSampler()->getEnergy() << "  " <<
+//                  sqrt(getSampler()->getCumulativeEnergySquared() - getSampler()->getEnergy()*getSampler()->getEnergy())/getNumberOfMetropolisSteps() << endl;
 
-        if ((double) iterations / maxIterations > 1-percentAlphasToSave){
-            cumulativeAlpha += alpha;
-        }
-    }
-    myFile.close();
+//        if ((double) iterations / maxIterations > 1-percentAlphasToSave){
+//            cumulativeAlpha += alpha;
+//        }
+//    }
+//    myFile.close();
 
-    alpha = cumulativeAlpha / (maxIterations*percentAlphasToSave);
-    return alpha;
-}
+//    alpha = cumulativeAlpha / (maxIterations*percentAlphasToSave);
+//    return alpha;
+//}
 
 
 int System::getBins() const
@@ -266,9 +360,10 @@ double System::computedistance(int i){
     return sqrt(temp);
 }
 
+
 bool System::updateDistanceMatrix( std::vector<class Particle> &particles, int randparticle){
     double temp = 0;
-    for (int j = 0; j < randparticle; j++){
+    for (int j = 0; j < randparticle; j++){ //need to understand what is randparticle
         temp = 0;
         for (int d = 0; d < m_numberOfDimensions; d++){
             temp += (particles.at(randparticle).getPosition()[d] - particles.at(j).getPosition()[d]) *
@@ -280,42 +375,41 @@ bool System::updateDistanceMatrix( std::vector<class Particle> &particles, int r
         }
         m_distanceMatrix[j][randparticle] = m_distanceMatrix[randparticle][j];
     }
-    for (int j = randparticle+1; j < m_numberOfParticles; j++){
-        temp = 0;
-        for (int d = 0; d < m_numberOfDimensions; d++){
-            temp += (particles.at(randparticle).getPosition()[d] - particles.at(j).getPosition()[d]) *
-                    (particles.at(randparticle).getPosition()[d] - particles.at(j).getPosition()[d]);
-        }
-        m_distanceMatrix[randparticle][j] = sqrt(temp);
-        if (m_distanceMatrix[randparticle][j] < getinteractionSize()){
-            return true;
-        }
-        m_distanceMatrix[j][randparticle] = m_distanceMatrix[randparticle][j];
+//    for (int j = randparticle+1; j < m_numberOfParticles; j++){
+//        temp = 0;
+//        for (int d = 0; d < m_numberOfDimensions; d++){
+//            temp += (particles.at(randparticle).getPosition()[d] - particles.at(j).getPosition()[d]) *
+//                    (particles.at(randparticle).getPosition()[d] - particles.at(j).getPosition()[d]);
+//        }
+//        m_distanceMatrix[randparticle][j] = sqrt(temp);
+//        if (m_distanceMatrix[randparticle][j] < getinteractionSize()){
+//            return true;
+//        }
+//        m_distanceMatrix[j][randparticle] = m_distanceMatrix[randparticle][j];
 
-    }
+//    }
     return false;
 }
 
-std::vector<vector<double>> System::computematrixdistance(std::vector<class Particle> &particles){
+std::vector<vector<double>> System::computematrixdistance(vector<double>& m_X){
 
     vector<vector<double>> distancematrix(m_numberOfParticles, vector<double>(m_numberOfParticles));
     double temp=0;
     int j=0;
-    while(j < m_numberOfParticles){
+    int z;
+    int k=0;
+    while(j < m_numberOfVisibleNodes){
         temp = 0;
-        for(int i = 0; i < j; i++){
-
-            for(int k=0;k<m_numberOfDimensions;k++){
-                temp+=(particles.at(i).getPosition()[k] - particles.at(j).getPosition()[k]) *
-                      (particles.at(i).getPosition()[k] - particles.at(j).getPosition()[k]);
+        z=0;
+            for(int i=0;i<j-2;i+=3){
+                temp=(m_X[i]-m_X[j])*(m_X[i]-m_X[j])+(m_X[i+1]-m_X[j+1])*(m_X[i+1]-m_X[j+1])+(m_X[i+2]-m_X[j+2])*(m_X[i+2]-m_X[j+2]);
+                distancematrix[z][k]=sqrt(temp);
+                distancematrix[k][z]=distancematrix[z][k];
+                z++;
             }
-            distancematrix[i][j]=sqrt(temp);
-            distancematrix[j][i]=distancematrix[i][j];
-        }
-
-        j++;
+        j+=3;
+        k++;
     }
-
     return distancematrix;
 }
 

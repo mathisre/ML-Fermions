@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
+using namespace std;
 
 class Hamiltonian {
 public:
     Hamiltonian(class System* system);
-    virtual double computeLocalEnergy(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w)=0;
+    virtual double computeLocalEnergy(bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w)=0;
  //   virtual double computeNumericalDoubleDerivative (std::vector<class Particle>& particles);
 
 protected:
