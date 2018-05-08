@@ -1,16 +1,18 @@
 #pragma once
 #include <string>
+#include <vector>
+
 class Sampler {
 public:
     Sampler(class System* system);
     void setNumberOfMetropolisSteps(int steps);
-    void sample(bool acceptedStep, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w);
-    void printOutputToTerminal();
+    void sample(bool acceptedStep, bool interaction, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w);
+    void printOutputToTerminal(int cycle);
 
     void openDataFile(std::string filename);
     void writeToFile();
 
-    void computeAverages();
+    void computeAverages(std::vector<double>& Gradient);
     double getEnergy()          { return m_energy; }
     int getStepNumber() const;
 
@@ -44,6 +46,10 @@ public:
     double getCumulativeEnergySquared() const;
     void setCumulativeEnergySquared(double cumulativeEnergySquared);
 
+    int getDimensionOfGradient() const;
+    void setDimensionOfGradient(int dimensionOfGradient);
+
+
 private:
     int     m_numberOfMetropolisSteps  = 0;
     double     m_stepNumber               = 0;
@@ -57,7 +63,12 @@ private:
     double  m_WFderivMultELoc          = 0;
     double  m_cumulativeWFderiv        = 0;
     double  m_cumulativeWFderivMultEloc= 0;
-
+    int m_dimensionOfGradient =0;
+//    std::vector <double> m_cumulativeGradient;//;=std::vector<double>();
+//    std::vector <double> m_cumulativeEnGradient;//=std::vector<double>();
+//    std::vector <double> m_Gradient;//=std::vector<double>();
+//    std::vector <double> m_EnGradient_average;//=std::vector<double>();
     std::string  m_filename;
+
     class System* m_system = nullptr;
 };

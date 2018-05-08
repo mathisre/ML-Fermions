@@ -23,80 +23,148 @@ void Sampler::setNumberOfMetropolisSteps(int steps) {
 }
 
 void Sampler::sample(bool acceptedStep, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
-//Function to sample the data
+    //Function to sample the data
     if (m_stepNumber == 0) {
         m_cumulativeEnergy          = 0;
         m_cumulativeEnergySquared   = 0;
         m_cumulativeWFderiv         = 0;
         m_cumulativeWFderivMultEloc = 0;
     }
-    if (acceptedStep==true){
-        m_energy=m_system->getHamiltonian()->computeLocalEnergy(interaction,X,Hidden,a_bias,b_bias,w);
-        // Sampling of energy moved to metropolisstep
-        m_acceptedNumber++;
-//        m_WFderiv = 0;
 
-//        double beta = m_system->getWaveFunction()->getParameters()[2] / m_system->getWaveFunction()->getParameters()[0];;
-//        for (int i = 0; i < m_system->getNumberOfParticles(); i++){
-//            for (int d = 0; d < m_system->getNumberOfDimensions() - 1; d++){
-//                m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d];
-//            }
-//            int d = m_system->getNumberOfDimensions() - 1;
-//            m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d] * beta;
-//        }
-//        m_WFderivMultELoc = m_WFderiv * m_energy;
-    }
+    //        m_WFderiv = 0;
+    // cout<<"ehi"<<endl;
 
-    //cout<<m_energy<<endl;
-     if (((double)getStepNumber()/getNumberOfMetropolisSteps() > 1.0 - m_system->getEquilibrationFraction())||fabs((double)getStepNumber()/getNumberOfMetropolisSteps() -( 1.0 - m_system->getEquilibrationFraction()))<1e-10){
-//sample if the system is at equilibrium
+    //        double beta = m_system->getWaveFunction()->getParameters()[2] / m_system->getWaveFunction()->getParameters()[0];;
+    //        for (int i = 0; i < m_system->getNumberOfParticles(); i++){
+    //            for (int d = 0; d < m_system->getNumberOfDimensions() - 1; d++){
+    //                m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d];
+    //            }
+    //            int d = m_system->getNumberOfDimensions() - 1;
+    //            m_WFderiv -= m_system->getParticles().at(i).getPosition()[d] * m_system->getParticles().at(i).getPosition()[d] * beta;
+    //        }
+    //        m_WFderivMultELoc = m_WFderiv * m_energy;
+
+
+    m_energy = m_system->getHamiltonian()->computeLocalEnergy(interaction,X,Hidden,a_bias,b_bias,w);
+    //  cout<<"ehi"<<m_energy<<endl;
+    //cout<<getStepNumber()<<endl;
+
+    if ( (double)getStepNumber() >= m_system->getEquilibrationFraction() * getNumberOfMetropolisSteps() ){
+        //sample if the system is at equilibrium
+        if ( acceptedStep == true ){
+            // Sampling of energy moved to metropolisstep
+            m_acceptedNumber++;
+            //cout<<"accepted"<<m_acceptedNumber<<endl;
+        }
+
+        //m_energy = m_system->getHamiltonian()->computeLocalEnergy(interaction,X,Hidden,a_bias,b_bias,w);
+
         m_cumulativeEnergy          += m_energy;
-        m_cumulativeEnergySquared   += m_energy*m_energy;
-//        m_cumulativeWFderiv         += m_WFderiv;
-//        m_cumulativeWFderivMultEloc += m_WFderivMultELoc;
+        // cout<<"---"<<m_energy<<endl;
+        m_cumulativeEnergySquared   += m_energy * m_energy;
+
+        vector<double> temp  (getDimensionOfGradient());
+        vector<double> temp2 (getDimensionOfGradient());
+        vector<double> G     (getDimensionOfGradient());
+
+        G     = m_system->GradientParameters(X,a_bias,b_bias,w);
+        temp  = m_system->getCumulativeGradient();
+        temp2 = m_system->getCumulativeEnGradient();
+
+        //        cout<<"grad"<<getDimensionOfGradient()<<endl;
+        //        cout<<temp.size()<<endl;
+
+        for(int i = 0; i < getDimensionOfGradient(); i++){
+
+            temp  [i] += G[i];
+            temp2 [i] += m_energy * G[i];
+
+        }
+
+        m_system->setCumulativeGradient   (temp);
+        m_system->setCumulativeEnGradient (temp2);
+
+        //        m_cumulativeWFderiv         += m_WFderiv;
+        //        m_cumulativeWFderivMultEloc += m_WFderivMultELoc;
 
         // Sometimes crashes
-//        m_system->oneBodyDensity();
-}
-    //cout<<m_cumulativeEnergy<<endl;
+        //        m_system->oneBodyDensity();
+        //       cout<<"1"<<endl;
+    }
+
     m_stepNumber++;
+    //cout<<m_cumulativeEnergy<<endl;
 }
 
-void Sampler::printOutputToTerminal() {
-    int     np = m_system->getNumberOfParticles();
-    int     nd = m_system->getNumberOfDimensions();
-    int     ms = m_system->getNumberOfMetropolisSteps();
-    int     p  = m_system->getWaveFunction()->getNumberOfParameters();
-    double  ef = m_system->getEquilibrationFraction();
+void Sampler::printOutputToTerminal(int cycle) {
+    int     np    = m_system->getNumberOfParticles();
+    int     nd    = m_system->getNumberOfDimensions();
+    int     ms    = m_system->getNumberOfMetropolisSteps();
+    int     p     = m_system->getNumberOfParameters();
+    int     v     = m_system->getNumberOfVisibleNodes();
+    int     h     = m_system->getNumberOfHiddenNodes();
+    double  ef    = m_system->getEquilibrationFraction();
+    double  ms_eq = ms - ef * ms;
+
     std::vector<double> pa = m_system->getWaveFunction()->getParameters();
+
     ofile.close();
 
-    cout << endl;
-    cout << "  -- System info -- " << endl;
-    cout << " Number of particles  : " << np << endl;
-    cout << " Number of dimensions : " << nd << endl;
-    cout << " Number of Metropolis steps run : 10^" << std::log10(ms) << endl;
-    cout << " Number of equilibration steps  : 10^" << std::log10(std::round(ms*ef)) << endl;
-    cout << endl;
-    cout << "  -- Wave function parameters -- " << endl;
-    cout << " Number of parameters : " << p << endl;
-    for (int i=0; i < p; i++) {
-        cout << " Parameter " << i+1 << " : " << pa.at(i) << endl;
+    if(cycle == 0) {
+
+        cout << endl;
+        cout << "  -- System info -- " << endl;
+        cout << " Number of particles  : " << np << endl;
+        cout << " Number of dimensions : " << nd << endl;
+        cout << " Number of visible nodes : " << v <<endl;
+        cout << " Number of hidden nodes : " << h <<endl;
+        cout << " Number of Metropolis steps run : 10^" << std::log10(ms) << endl;
+        cout << " Number of equilibration steps  : 10^" << std::log10(std::round(ms*ef)) << endl;
+        cout << endl;
+        cout << "  -- Wave function parameters -- " << endl;
+        cout << " Number of parameters : " << p << endl;
+        //    for (int i=0; i < p; i++) {
+        //        cout << " Parameter " << i+1 << " : " << pa.at(i) << endl;
+        //    }
+        cout << endl;
     }
-    cout << endl;
+
+    cout<<endl;
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_energy << endl;
-    cout << " St. dev: " << sqrt(m_cumulativeEnergySquared - m_energy*m_energy) / sqrt(ms) << endl;
-    cout << " Acceptance ratio: " << m_acceptedNumber/m_stepNumber << endl;
+    cout << " St. dev: " << sqrt(m_cumulativeEnergySquared - m_energy*m_energy) / sqrt(ms_eq) << endl;
+    cout << " Acceptance ratio: " << (double)m_acceptedNumber/ms_eq << endl;
+    cout << " Number of cycle: "  <<cycle<<endl;
     cout << endl;
+
 }
 
 
 
-void Sampler::computeAverages() {
+void Sampler::computeAverages(vector<double> &Gradient) {
 
-    m_energy = m_cumulativeEnergy / (m_system->getNumberOfMetropolisSteps()*m_system->getEquilibrationFraction());
-    m_cumulativeEnergySquared /= m_system->getNumberOfMetropolisSteps()*m_system->getEquilibrationFraction();
+    double frac = m_system->getNumberOfMetropolisSteps() * ( 1 - m_system->getEquilibrationFraction() );
+
+    m_energy = m_cumulativeEnergy / (frac);
+    m_cumulativeEnergySquared /= frac;
+
+    vector<double> temp  (getDimensionOfGradient());
+    vector<double> temp2 (getDimensionOfGradient());
+
+    temp  = m_system->getCumulativeGradient();
+    temp2 = m_system->getCumulativeEnGradient();
+
+    double sum1 = 0;
+    double sum2 = 0;
+
+    for(int i = 0; i < m_system->getNumberOfParameters(); i++){
+
+        sum1 = temp[i] / frac;
+        sum2 = temp2[i] / frac;
+
+        Gradient[i] = 2 * ( sum2 - m_energy * sum1 );
+    }
+
 }
 
 
@@ -208,4 +276,14 @@ double Sampler::getCumulativeEnergySquared() const
 void Sampler::setCumulativeEnergySquared(double cumulativeEnergySquared)
 {
     m_cumulativeEnergySquared = cumulativeEnergySquared;
+}
+
+int Sampler::getDimensionOfGradient() const
+{
+    return m_dimensionOfGradient;
+}
+
+void Sampler::setDimensionOfGradient(int dimensionOfGradient)
+{
+    m_dimensionOfGradient = dimensionOfGradient;
 }

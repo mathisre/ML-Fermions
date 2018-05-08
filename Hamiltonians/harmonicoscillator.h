@@ -12,7 +12,7 @@ public:
     void setOmega(const std::vector<double> &omega);
 
     double computeInteractionPotential();
-    double computePotentialEnergy();
+    double computePotentialEnergy(vector<double> X);
 private:
     std::vector<double> m_omega = std::vector<double>();
 };

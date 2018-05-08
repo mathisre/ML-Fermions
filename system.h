@@ -5,9 +5,9 @@
 
 class System {
 public:
-    void metropolisStepImportance   (bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
-    void metropolisStepBruteForce   (bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
-    void runMetropolisSteps         (int numberOfMetropolisSteps, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double> > w);
+    bool metropolisStepImportance(bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w);
+    bool metropolisStepBruteForce   (bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+    void runMetropolisSteps         (std::vector<double>&Gradient,int numberOfMetropolisSteps, bool interaction, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
     void setNumberOfParticles       (int numberOfParticles);
     void setNumberOfDimensions      (int numberOfDimensions);
     void setStepLength              (double stepLength);
@@ -16,10 +16,10 @@ public:
     void setWaveFunction            (class WaveFunction* waveFunction);
     void setInitialState            (class InitialState* initialState);
     void openDataFile               (std::string filename);
-    void printOut                   ();
+    void printOut                   (int cycle);
     double computedistance          (int i);
     double computedistanceABS       (int i, int j);
-   std::vector<std::vector<double>>    computematrixdistance(std::vector<class Particle> &particles);
+   std::vector<std::vector<double>>    computematrixdistance(std::vector<double> &X);
     class WaveFunction*             getWaveFunction()   { return m_waveFunction; }
     class Hamiltonian*              getHamiltonian()    { return m_hamiltonian; }
     class Sampler*                  getSampler()        { return m_sampler; }
@@ -42,7 +42,7 @@ public:
 
     std::vector<std::vector<double> > getDistanceMatrix() const;
     void setDistanceMatrix(const std::vector<std::vector<double> > &distanceMatrix);
-    bool updateDistanceMatrix(std::vector<Particle> &particles, int randparticle);
+ //   void updateDistanceMatrix(std::vector<double> X, int randparticle);
     double getDistanceMatrixij(int i, int j) const;
 
     double getPsiOld() const;
@@ -50,8 +50,8 @@ public:
 
     double findEnergyDerivative();
 
-     std::vector<std::vector<double>> getQuantumForce() const;
-    void setQuantumForce(const  std::vector<std::vector<double>> &QuantumForce);
+     std::vector<double> getQuantumForce() const;
+    void setQuantumForce(const  std::vector<double> &QuantumForce);
     void updateQuantumForce( std::vector<std::vector<double>> deltaQuantumForce, bool subtract);
 
 
@@ -66,7 +66,6 @@ public:
     double getBucketSize() const;
     void setBucketSize(double bucketSize);
         void oneBodyDensity();
-
 
 
 
@@ -95,6 +94,22 @@ public:
         int getNumberOfParameters() const;
         void setNumberOfParameters(int numberOfParameters);
 
+
+        void StochasticGradientDescent(std::vector<double> Gradient,std::vector<double> X, std::vector<double> &a_bias, std::vector<double> &b_bias, std::vector<std::vector<double> > &w);
+        std::vector<double> GradientParameters(std::vector<double> X, std::vector<double> &a_bias, std::vector<double> &b_bias, std::vector<std::vector<double> > &w);
+        std::vector<double> getCumulativeGradient() const;
+        void setCumulativeGradient(const std::vector<double> &cumulativeGradient);
+
+        std::vector<double> getCumulativeEnGradient() const;
+        void setCumulativeEnGradient(const std::vector<double> &cumulativeEnGradient);
+
+        std::vector<double> getGradient() const;
+
+        void setGradient(const std::vector<double> &Gradient);
+
+        std::vector<double> getEnGradient_average() const;
+        void setEnGradient_average(const std::vector<double> &EnGradient_average);
+
 private:
         int                             m_numberOfParticles = 0;
         int                             m_numberOfDimensions = 0;
@@ -117,7 +132,7 @@ double m_learningRate=0;
 int m_numberOfParameters=0;
 
     std::vector<int>                m_histogram;
-    std::vector<std::vector<double>> m_QuantumForce;
+    std::vector<double> m_QuantumForce;
     class WaveFunction*             m_waveFunction = nullptr;
     class Hamiltonian*              m_hamiltonian = nullptr;
     class InitialState*             m_initialState = nullptr;
@@ -127,7 +142,10 @@ int m_numberOfParameters=0;
     std::vector<class Particle>     m_particles = std::vector<class Particle>();
     std::vector<std::vector<double>>     m_distanceMatrix = std::vector<std::vector<double>>();
 
-
+    std::vector <double> m_cumulativeGradient=std::vector<double>();
+    std::vector <double> m_cumulativeEnGradient=std::vector<double>();
+    std::vector <double> m_Gradient=std::vector<double>();
+    std::vector <double> m_EnGradient_average=std::vector<double>();
 //    int m_numberOfHiddenNodes =0;
 //    int m_numberOfVisibleNodes = 0;
 

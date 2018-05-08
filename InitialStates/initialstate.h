@@ -5,7 +5,7 @@
 class InitialState {
 public:
     InitialState(class System* system);
-    virtual void setupInitialState() = 0;
+    virtual void setupInitialState(std::vector<double> &m_X, std::vector<double> &m_Hidden, std::vector<double> &m_a_bias, std::vector<double> &m_b_bias, std::vector<std::vector<double> > &m_w) = 0;
     std::vector<class Particle> getParticles() { return m_particles; }
 
 
