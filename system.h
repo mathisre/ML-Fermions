@@ -5,9 +5,9 @@
 
 class System {
 public:
-    bool metropolisStepImportance(bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w);
-    bool metropolisStepBruteForce   (bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
-    void runMetropolisSteps         (std::vector<double>&Gradient,int numberOfMetropolisSteps, bool interaction, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+    bool metropolisStepImportance   (double GibbsValue, bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w);
+    bool metropolisStepBruteForce   (double GibbsValue, bool interaction,std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+    void runMetropolisSteps         (std::string method, std::vector<double>&Gradient,int numberOfMetropolisSteps, bool interaction, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
     void setNumberOfParticles       (int numberOfParticles);
     void setNumberOfDimensions      (int numberOfDimensions);
     void setStepLength              (double stepLength);
@@ -42,7 +42,7 @@ public:
 
     std::vector<std::vector<double> > getDistanceMatrix() const;
     void setDistanceMatrix(const std::vector<std::vector<double> > &distanceMatrix);
- //   void updateDistanceMatrix(std::vector<double> X, int randparticle);
+   void updateDistanceMatrix(std::vector<double> X, int randparticle);
     double getDistanceMatrixij(int i, int j) const;
 
     double getPsiOld() const;
@@ -96,7 +96,7 @@ public:
 
 
         void StochasticGradientDescent(std::vector<double> Gradient,std::vector<double> X, std::vector<double> &a_bias, std::vector<double> &b_bias, std::vector<std::vector<double> > &w);
-        std::vector<double> GradientParameters(std::vector<double> X, std::vector<double> &a_bias, std::vector<double> &b_bias, std::vector<std::vector<double> > &w);
+        std::vector<double> GradientParameters(double GibbsValue, std::vector<double> X, std::vector<double> &a_bias, std::vector<double> &b_bias, std::vector<std::vector<double> > &w);
         std::vector<double> getCumulativeGradient() const;
         void setCumulativeGradient(const std::vector<double> &cumulativeGradient);
 
@@ -110,6 +110,8 @@ public:
         std::vector<double> getEnGradient_average() const;
         void setEnGradient_average(const std::vector<double> &EnGradient_average);
 
+        bool GibbsSampling(std::vector<double> &X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w);
+        int computeIndex(int index);
 private:
         int                             m_numberOfParticles = 0;
         int                             m_numberOfDimensions = 0;

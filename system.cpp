@@ -15,7 +15,7 @@
 
 using namespace std;
 
-bool System::metropolisStepBruteForce(bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Brute Force Metropolis method
+bool System::metropolisStepBruteForce(double GibbsValue, bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Brute Force Metropolis method
     //    int randparticle=Random::nextInt(getNumberOfParticles());
     int randparticle=Random::nextInt(getNumberOfVisibleNodes());
 
@@ -28,7 +28,8 @@ bool System::metropolisStepBruteForce(bool interaction,vector<double> &X, vector
     //    for(int i=0; i<getNumberOfVisibleNodes(); i++){
     //        cout<<"ora"<<X[i]<<endl;
     //    }
-
+    vector <vector<double>> OldDistanceMatrix;
+    OldDistanceMatrix=getDistanceMatrix();
     //choose a new move
     int init =randparticle*m_numberOfDimensions;
 
@@ -46,8 +47,9 @@ bool System::metropolisStepBruteForce(bool interaction,vector<double> &X, vector
     //    }
     //    m_particles.at(randparticle).setPosition(r_new); UPDATE FUNCTION DISTANCE MATRIX
     //    updateDistanceMatrix(m_particles, randparticle);
+    setDistanceMatrix (computematrixdistance(X_new));
 
-    double psi_new = m_waveFunction->evaluate(X_new, Hidden, a_bias, b_bias, w);
+    double psi_new = m_waveFunction->evaluate(GibbsValue, X_new, Hidden, a_bias, b_bias, w);
 
     //   cout<<"new"<<psi_new<<endl;
 
@@ -71,14 +73,14 @@ bool System::metropolisStepBruteForce(bool interaction,vector<double> &X, vector
         //updateDistanceMatrix(m_particles, randparticle); //update
         //    getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction,X_old,Hidden,a_bias,b_bias,w));
         //  cout<<"notac"<<getSampler()->getEnergy()<<endl;
-
+setDistanceMatrix(OldDistanceMatrix);
         return false;
 
     }
 }
 
 
-bool System::metropolisStepImportance(bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Importance Sampling method
+bool System::metropolisStepImportance(double GibbsValue, bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Importance Sampling method
 
     int randparticle = Random::nextInt (getNumberOfVisibleNodes());
 
@@ -93,8 +95,12 @@ bool System::metropolisStepImportance(bool interaction,vector<double> &X, vector
 
     vector <vector<double>> OldDistanceMatrix;
     OldDistanceMatrix=getDistanceMatrix();
-
-    int init = randparticle * m_numberOfDimensions;
+//    for(int i=0; i<m_numberOfParticles; i++){
+//        for(int j=0; j<m_numberOfParticles; j++){
+//            cout<<m_distanceMatrix[i][j]<<endl;
+//        }
+//    }
+    //int init = randparticle * m_numberOfDimensions;
 
 
     //randparticle=2;
@@ -103,6 +109,7 @@ bool System::metropolisStepImportance(bool interaction,vector<double> &X, vector
     //   for(int d = init; d < init+ m_numberOfDimensions; d++){
 
     X_new[randparticle] = X_old[randparticle] + 0.5 * m_QuantumForce[randparticle] * m_timeStep + m_sqrtTimeStep * ( Random::nextGaussian(0.0, 1.0) );
+
 
     // cout << X_new[randparticle]-X_old[randparticle]<< endl;
     //        cout << "R_old = " << r_old[d] << endl;
@@ -115,12 +122,25 @@ bool System::metropolisStepImportance(bool interaction,vector<double> &X, vector
     //  cout<<"old"<<QF_old[randparticle]<<endl;
     // m_particles.at(randparticle).setPosition(r_new);
 
-    setQuantumForce (m_waveFunction->QuantumForce(X_new,a_bias,b_bias,w)); //UPDATE
+    setQuantumForce (m_waveFunction->QuantumForce(GibbsValue,X_new,a_bias,b_bias,w)); //UPDATE
     QF_new = m_QuantumForce;
 
     //   cout<<X_new[randparticle]<<endl;
-    // updateDistanceMatrix(X_new, randparticle);
-    setDistanceMatrix (computematrixdistance(X_new));
+    updateDistanceMatrix(X_new, randparticle);
+
+//    for(int i=0; i<m_numberOfParticles; i++){
+//        for(int j=0; j<m_numberOfParticles; j++){
+//            cout<<m_distanceMatrix[i][j]<<endl;
+//        }
+//    }
+
+  //  setDistanceMatrix (computematrixdistance(X_new));
+
+//    for(int i=0; i<m_numberOfParticles; i++){
+//        for(int j=0; j<m_numberOfParticles; j++){
+//            cout<<m_distanceMatrix[i][j]<<endl;
+//        }
+//    }
     // Compute Green function
     double GreensFunction = 0.0;
     //  for(int d = 0; d < m_numberOfDimensions; d++){
@@ -135,7 +155,7 @@ bool System::metropolisStepImportance(bool interaction,vector<double> &X, vector
 
     GreensFunction = exp( GreensFunction );
 
-    double psi_new = m_waveFunction->evaluate(X_new,Hidden,a_bias,b_bias, w);
+    double psi_new = m_waveFunction->evaluate(GibbsValue,X_new,Hidden,a_bias,b_bias, w);
     //    cout<<"step: "<<m_timeStep<<endl
     ;
     //    cout<<"old: "<<m_psiOld<<endl;
@@ -163,19 +183,63 @@ bool System::metropolisStepImportance(bool interaction,vector<double> &X, vector
         X = X_old;
 
         setQuantumForce   (QF_old);
-        //updateDistanceMatrix(X_old, randparticle); //UPDATE
-
-        setDistanceMatrix (OldDistanceMatrix);
+  //setDistanceMatrix(OldDistanceMatrix);
+updateDistanceMatrix(X_old,randparticle);
+        //setDistanceMatrix (OldDistanceMatrix);
 
         //     getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction,X_old,Hidden,a_bias,b_bias, w));
         return false;
     }
 }
 
+bool System::GibbsSampling(vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w){
 
-void System::runMetropolisSteps(vector<double>&Gradient,int numberOfMetropolisSteps,bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+    int N = getNumberOfHiddenNodes();
+    int M = getNumberOfVisibleNodes();
+
+    //vector <double> argument(N);
+
+    double sum;
+    double sum2;
+    double mean;
+    double argument;
+
+    for(int j = 0; j < N; j++){
+        sum = 0;
+
+        for(int i = 0; i < M; i++){
+            sum += X[i] * w[i][j] / getSigma_squared();
+        // cout<<"old X["<<i<<"]"<<X[i]<<endl;
+        }
+
+        argument = exp( - b_bias[j] - sum);
+        Hidden[j]=1/(1+argument);
+    }
+
+    for( int i = 0; i < M; i++){
+
+        sum2 = 0;
+
+            for( int j = 0; j < N; j++){
+
+            sum2 += Hidden[j] * w[i][j];
+
+        }
+
+        mean = a_bias[i] + sum2;
+        X[i] = Random::nextGaussian(mean,getSigma());
+       // cout<<"new X["<<i<<"]"<<X[i]<<endl;
+
+    }
+
+    return true;
+}
+
+void System::runMetropolisSteps(string method, vector<double>&Gradient,int numberOfMetropolisSteps,bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
     //Principal function of the whole code. Here the Monte Carlo method is
     // m_particles                 = m_initialState->getParticles();
+    double GibbsValue = 1.0;
+    if(method=="Gibbs") GibbsValue=0.5;
     m_sampler                   = new Sampler(this);
     m_numberOfMetropolisSteps   = numberOfMetropolisSteps;
     //cout<<getSampler()->getEnergy()<<endl;
@@ -186,10 +250,15 @@ void System::runMetropolisSteps(vector<double>&Gradient,int numberOfMetropolisSt
     m_sampler->setDimensionOfGradient(m_numberOfParameters);
     // Initial values
     setDistanceMatrix(computematrixdistance(X));
-    m_psiOld = m_waveFunction->evaluate(X,Hidden, a_bias, b_bias,w);
+//    for(int i=0; i<m_numberOfParticles; i++){
+//        for(int j=0; j<m_numberOfParticles; j++){
+//            cout<<m_distanceMatrix[i][j]<<endl;
+//        }
+//    }
+    m_psiOld = m_waveFunction->evaluate(GibbsValue, X,Hidden, a_bias, b_bias,w);
     //  getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction, X,Hidden, a_bias, b_bias,w));
     //cout<<"ehi"<<endl;
-    setQuantumForce(m_waveFunction->QuantumForce(X,a_bias,b_bias,w));
+    setQuantumForce(m_waveFunction->QuantumForce(GibbsValue, X,a_bias,b_bias,w));
 
     setHistogram();
     vector<double> temp (m_numberOfParameters);
@@ -197,12 +266,13 @@ void System::runMetropolisSteps(vector<double>&Gradient,int numberOfMetropolisSt
     setCumulativeGradient(temp);
     setGradient(temp);
     setEnGradient_average(temp);
-
+bool acceptedStep;
     for (int i=0; i < numberOfMetropolisSteps; i++) {
-        //bool acceptedStep =   metropolisStepBruteForce(interaction, X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
-        bool acceptedStep = metropolisStepImportance(interaction,X,Hidden, a_bias, b_bias,w);     //run the system with Importance Sampling
+        if( method == "MetropolisBruteForce" ) acceptedStep =  metropolisStepBruteForce(GibbsValue,interaction, X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
+        if( method == "MetropolisImportance" ) acceptedStep =  metropolisStepImportance(GibbsValue, interaction,X,Hidden, a_bias, b_bias,w);    //run the system with Importance Sampling
+        if( method == "Gibbs"                ) acceptedStep =  GibbsSampling(X,Hidden,a_bias,b_bias,w);
 
-        m_sampler->sample(acceptedStep,interaction,X,Hidden,a_bias,b_bias,w);                    //sample results and write them to file
+        m_sampler->sample(GibbsValue, acceptedStep,interaction,X,Hidden,a_bias,b_bias,w);                    //sample results and write them to file
         m_sampler->writeToFile();
     }
     //StochasticGradientDescent(Gradient,X,a_bias,b_bias,w);
@@ -247,7 +317,7 @@ void System::setNumberOfParameters(int numberOfParameters)
 }
 
 
-vector<double> System::GradientParameters(vector<double> X, vector<double>& a_bias, vector<double>& b_bias, vector<std::vector<double>>& w){
+vector<double> System::GradientParameters(double GibbsValue, vector<double> X, vector<double>& a_bias, vector<double>& b_bias, vector<std::vector<double>>& w){
     vector<double> GradientPsi (m_numberOfParameters);
     vector<double> argument    (m_numberOfHiddenNodes);
 
@@ -267,12 +337,12 @@ vector<double> System::GradientParameters(vector<double> X, vector<double>& a_bi
     }
 
     for(int i = 0; i < m_numberOfVisibleNodes; i++){
-        GradientPsi[i] = ( X[i] - a_bias[i] ) / getSigma_squared();
+        GradientPsi[i] = ( X[i] - a_bias[i] ) * GibbsValue / getSigma_squared();
     }
 
 
     for(int i = m_numberOfVisibleNodes; i < m_numberOfHiddenNodes + m_numberOfVisibleNodes; i++){
-        GradientPsi[i] = 1 / ( 1 + exp ( - argument[i - m_numberOfVisibleNodes] ) );
+        GradientPsi[i] = GibbsValue / ( 1 + exp ( - argument[i - m_numberOfVisibleNodes] ) );
     }
 
     int z = m_numberOfVisibleNodes + m_numberOfHiddenNodes;
@@ -280,7 +350,7 @@ vector<double> System::GradientParameters(vector<double> X, vector<double>& a_bi
 
         for(int j=0; j<m_numberOfHiddenNodes; j++){
 
-            GradientPsi[z] = X[i] / ( getSigma_squared() * ( 1 + exp ( - argument[j] ) ) );
+            GradientPsi[z] = GibbsValue * X[i] / ( getSigma_squared() * ( 1 + exp ( - argument[j] ) ) );
             z++;
 
         }
@@ -503,37 +573,60 @@ double System::computedistance(int i){
     return sqrt(temp);
 }
 
+int System::computeIndex(int index){
+    int init=index;
+   //cout<<"begin"<<index<<endl;
+    if((index%m_numberOfDimensions)==0) {
+   //cout<<"end"<<init<<endl;
+        return index;
+    }
 
-//void System::updateDistanceMatrix(std::vector<double> m_X, int randparticle){
-//    double temp = 0;
-//    int init=randparticle*m_numberOfDimensions;
-//    for (int j = 0; j < init; j+=m_numberOfDimensions){
-//        temp = 0;
-//        for (int d = 0; d < m_numberOfDimensions; d++){
-//            temp += (m_X[j+d] - m_X[j+d]) *
-//                    (m_X[init+d] - m_X[init+d]);
+    while(index>m_numberOfDimensions){
+    index -=m_numberOfDimensions;
+    }
+    init -=index;
+  // cout<<"end"<<init<<endl;
+   return init;
+}
+
+void System::updateDistanceMatrix(std::vector<double> m_X, int randparticle){
+    double temp = 0;
+  double  init=computeIndex(randparticle);
+//cout<<"ehi"<<endl;
+    double part=init/m_numberOfDimensions;
+
+            //int init=randparticle*m_numberOfDimensions;
+    for (int j = 0; j < init; j+=m_numberOfDimensions){
+        temp = 0;
+        for (int d = 0; d < m_numberOfDimensions; d++){
+            temp += (m_X[j+d] - m_X[init+d]) *
+                    (m_X[j+d] - m_X[init+d]);
+           // cout<<temp<<endl;
+        }
+        m_distanceMatrix[part][j/m_numberOfDimensions] = sqrt(temp);
+       // cout<<part<<endl;
+        //cout<<j/m_numberOfDimensions<<endl;
+//        if (m_distanceMatrix[randparticle][j] < getinteractionSize()){
+//            return true;
 //        }
-//        m_distanceMatrix[randparticle][j/m_numberOfDimensions] = sqrt(temp);
-////        if (m_distanceMatrix[randparticle][j] < getinteractionSize()){
-////            return true;
-////        }
-//        m_distanceMatrix[j/m_numberOfDimensions][randparticle] = m_distanceMatrix[randparticle][j/m_numberOfDimensions];
-//    }
-//    for (int j = init+m_numberOfDimensions; j < m_numberOfVisibleNodes; j+=m_numberOfDimensions){
-//        temp = 0;
-//        for (int d = 0; d < m_numberOfDimensions; d++){
-//            temp += (m_X[j+d] - m_X[j+d]) *
-//                    (m_X[init+d] - m_X[init+d]);
+        m_distanceMatrix[j/m_numberOfDimensions][part] = m_distanceMatrix[part][j/m_numberOfDimensions];
+    }
+    for (int j = init+m_numberOfDimensions; j < m_numberOfVisibleNodes; j+=m_numberOfDimensions){
+        temp = 0;
+     //   cout<<"ehi"<<endl;
+        for (int d = 0; d < m_numberOfDimensions; d++){
+            temp += (m_X[j+d] - m_X[init+d]) *
+                    (m_X[j+d] - m_X[init+d]);
+        }
+        m_distanceMatrix[part][j/m_numberOfDimensions] = sqrt(temp);
+//        if (m_distanceMatrix[randparticle][j] < getinteractionSize()){
+//            return true;
 //        }
-//        m_distanceMatrix[randparticle][j/m_numberOfDimensions] = sqrt(temp);
-////        if (m_distanceMatrix[randparticle][j] < getinteractionSize()){
-////            return true;
-////        }
-//        m_distanceMatrix[j/m_numberOfDimensions][randparticle] = m_distanceMatrix[randparticle][j/m_numberOfDimensions];
+        m_distanceMatrix[j/m_numberOfDimensions][part] = m_distanceMatrix[part][j/m_numberOfDimensions];
 
-//    }
+    }
 
-//}
+}
 
 std::vector<vector<double>> System::computematrixdistance(vector<double>& m_X){
 
@@ -552,7 +645,7 @@ std::vector<vector<double>> System::computematrixdistance(vector<double>& m_X){
 
             for(int q = 0; q < m_numberOfDimensions; q++){
 
-                temp += ( m_X[ i + q ] - m_X[ j + q ] ) * ( m_X[ i + q ] - m_X[ j + q ] );
+                temp += ( m_X[i + q] - m_X[j + q] ) * ( m_X[i + q] - m_X[j + q] );
 
             }
             //temp=(m_X[i]-m_X[j])*(m_X[i]-m_X[j])+(m_X[i+1]-m_X[j+1])*(m_X[i+1]-m_X[j+1])+(m_X[i+2]-m_X[j+2])*(m_X[i+2]-m_X[j+2]);

@@ -58,7 +58,7 @@ int main(){
 
     double alpha            = 0.50;      // Variational parameter.
     double beta             = 1.0;            // for interacting case: beta=2.82843
-    int numberOfSteps       = (int) 10;   // NUmber of Monte Carlo steps
+    int numberOfSteps       = (int) 10000;   // NUmber of Monte Carlo steps
     double interactionSize  = 0.0; // for interacting case: interactionSize=0.0043;
 
     double timeStep         = 0.3;        // Importance sampling time step
@@ -87,7 +87,10 @@ int main(){
     system->setStepLength               (stepLength);
 
 
-    int TotalNumberOfCycles = 1;
+    int TotalNumberOfCycles = 1000;
+  // string method = "MetropolisBruteForce";
+    string method = "MetropolisImportance";
+   // string method = "Gibbs";
 
     vector <double> Gradient(numberOfParameters);
     //vector<double> list(TotalNumberOfCycles);
@@ -105,7 +108,7 @@ int main(){
 
         system->setNumberOfParameters     (numberOfParameters);
 
-        system->runMetropolisSteps        (Gradient,numberOfSteps,interaction, X, Hidden, a_bias, b_bias, w);
+        system->runMetropolisSteps        (method, Gradient,numberOfSteps,interaction, X, Hidden, a_bias, b_bias, w);
 
         system->StochasticGradientDescent (Gradient,X,a_bias,b_bias,w);
 

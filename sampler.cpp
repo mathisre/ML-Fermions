@@ -22,7 +22,7 @@ void Sampler::setNumberOfMetropolisSteps(int steps) {
     m_numberOfMetropolisSteps = steps;
 }
 
-void Sampler::sample(bool acceptedStep, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+void Sampler::sample(double GibbsValue, bool acceptedStep, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
     //Function to sample the data
     if (m_stepNumber == 0) {
         m_cumulativeEnergy          = 0;
@@ -45,7 +45,7 @@ void Sampler::sample(bool acceptedStep, bool interaction, vector<double> X, vect
     //        m_WFderivMultELoc = m_WFderiv * m_energy;
 
 
-    m_energy = m_system->getHamiltonian()->computeLocalEnergy(interaction,X,Hidden,a_bias,b_bias,w);
+    m_energy = m_system->getHamiltonian()->computeLocalEnergy(GibbsValue, interaction,X,Hidden,a_bias,b_bias,w);
     //  cout<<"ehi"<<m_energy<<endl;
     //cout<<getStepNumber()<<endl;
 
@@ -67,7 +67,7 @@ void Sampler::sample(bool acceptedStep, bool interaction, vector<double> X, vect
         vector<double> temp2 (getDimensionOfGradient());
         vector<double> G     (getDimensionOfGradient());
 
-        G     = m_system->GradientParameters(X,a_bias,b_bias,w);
+        G     = m_system->GradientParameters(GibbsValue, X,a_bias,b_bias,w);
         temp  = m_system->getCumulativeGradient();
         temp2 = m_system->getCumulativeEnGradient();
 

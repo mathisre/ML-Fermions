@@ -21,7 +21,7 @@ SimpleGaussian::SimpleGaussian(System* system)://, vector<double> a_bias, vector
     //m_parameters.push_back(beta);
 }
 
-double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+double SimpleGaussian::evaluate(double GibbsValue,vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     double first_sum = 0;
     double prod = 1;
@@ -32,7 +32,7 @@ double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<
     }
     first_sum /= 2*m_system->getSigma_squared();
 
-    first_sum = exp(-first_sum);
+    first_sum = exp(-first_sum*GibbsValue);
 //cout<<first_sum<<endl;
     for (int j = 0; j < N; j++){
         double second_sum = 0;
@@ -44,11 +44,13 @@ double SimpleGaussian::evaluate(vector<double> X, vector<double> Hidden, vector<
         prod *= 1 + exp(b_bias[j] + second_sum);
     }
   //  cout<<prod<<endl;
+    if(GibbsValue==0.5) {return first_sum*sqrt(prod); cout<<"ehi"<<endl;}
+
     return first_sum*prod;
 }
 
 
-double SimpleGaussian::computeDoubleDerivative(vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+double SimpleGaussian::computeDoubleDerivative(double GibbsValue, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     int N = m_system->getNumberOfHiddenNodes();
     int M = m_system->getNumberOfVisibleNodes();
@@ -97,7 +99,7 @@ double SimpleGaussian::computeDoubleDerivative(vector<double> X, vector<double> 
         //cout<<secondsum<<endl;
         //cout<<"somma"<<secondsum<<endl;
 
-        kinetic += firstsum * firstsum + secondsum;
+        kinetic += firstsum * firstsum*GibbsValue*GibbsValue + secondsum*GibbsValue;
     }
 
     //cout<<"firstsum: "<<firstsum<<endl;
@@ -107,7 +109,7 @@ double SimpleGaussian::computeDoubleDerivative(vector<double> X, vector<double> 
 }
 
 
-std::vector<double> SimpleGaussian::QuantumForce(vector<double> X, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+std::vector<double> SimpleGaussian::QuantumForce(double GibbsValue, vector<double> X, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
     //Function to comput the Quantum Force for the Importance Sampling method
 
     //double temp2;
@@ -143,7 +145,7 @@ std::vector<double> SimpleGaussian::QuantumForce(vector<double> X, vector<double
 
         }
 
-        QuantumForce[i] = 2 * ( - (X[i] - a_bias[i] ) + temp2[i] ) / m_system->getSigma_squared();
+        QuantumForce[i] = 2 * ( - (X[i] - a_bias[i] ) + temp2[i] ) * GibbsValue / m_system->getSigma_squared();
         //cout<<QuantumForce[i]<<endl;
     }
 

@@ -7,10 +7,10 @@ public:
     WaveFunction(class System* system);
     int     getNumberOfParameters() { return m_numberOfParameters; }
     std::vector<double> getParameters() { return m_parameters; }
-    virtual double evaluate(std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w) = 0;
-    virtual double computeDoubleDerivative(std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w)=0;
+    virtual double evaluate(double GibbsValue, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w) = 0;
+    virtual double computeDoubleDerivative(double GibbsValue, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w)=0;
     //virtual std::vector<std::vector<double>> QuantumForce(std::vector<class Particle>& particles) = 0;
-    virtual std::vector<double> QuantumForce(std::vector<double> X, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w)=0;
+    virtual std::vector<double> QuantumForce(double GibbsValue, std::vector<double> X, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double> > w)=0;
 
     void setParameters(const std::vector<double> &parameters);
 

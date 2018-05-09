@@ -6,7 +6,7 @@ class Sampler {
 public:
     Sampler(class System* system);
     void setNumberOfMetropolisSteps(int steps);
-    void sample(bool acceptedStep, bool interaction, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w);
+    void sample(double GibbsValue, bool acceptedStep, bool interaction, std::vector<double> X, std::vector<double> Hidden, std::vector<double> a_bias, std::vector<double> b_bias, std::vector<std::vector<double>> w);
     void printOutputToTerminal(int cycle);
 
     void openDataFile(std::string filename);

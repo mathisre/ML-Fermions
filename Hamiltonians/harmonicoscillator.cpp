@@ -21,13 +21,13 @@ HarmonicOscillator::HarmonicOscillator(System* system, double omega, double omeg
 
 }
 
-double HarmonicOscillator::computeLocalEnergy(bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
+double HarmonicOscillator::computeLocalEnergy(double GibbsValue, bool interaction, vector<double> X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) {
 
     double potentialEnergy = 0;
     double kineticEnergy   = 0;
     double interaction_potential=0;
 
-    kineticEnergy = -0.5*m_system->getWaveFunction()->computeDoubleDerivative(X,Hidden,a_bias,b_bias,w);   //analytical double derivative
+    kineticEnergy = -0.5*m_system->getWaveFunction()->computeDoubleDerivative(GibbsValue, X,Hidden,a_bias,b_bias,w);   //analytical double derivative
 
     //compute the Potential, from the choices made by setting beta and omega_z at the beginning the potential is spherical or elliptical
     potentialEnergy=computePotentialEnergy(X);
@@ -55,11 +55,14 @@ void HarmonicOscillator::setOmega(const std::vector<double> &omega)
 
 double HarmonicOscillator::computeInteractionPotential(){
     double interaction_potential=0;
-    for(int i=0; i<m_system->getNumberOfParticles(); i++){
-        for(int j=0; j<i; j++){
+    for(int j=0; j<m_system->getNumberOfParticles(); j++){
+        for(int i=0; i<j; i++){
             interaction_potential+=1/m_system->getDistanceMatrixij(i,j);
+         //   cout<<"i"<<m_system->getDistanceMatrix()[0][0]<<endl;
+           // cout<<"j"<<j<<endl;
         }
     }
+    //cout<<interaction_potential<<endl;
     return interaction_potential;
 }
 
