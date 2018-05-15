@@ -33,6 +33,7 @@ double HarmonicOscillator::computeLocalEnergy(double GibbsValue, bool interactio
     potentialEnergy=computePotentialEnergy(X);
 
     if (interaction==true){
+
         interaction_potential=computeInteractionPotential();
     }
 
@@ -58,11 +59,12 @@ double HarmonicOscillator::computeInteractionPotential(){
     for(int j=0; j<m_system->getNumberOfParticles(); j++){
         for(int i=0; i<j; i++){
             interaction_potential+=1/m_system->getDistanceMatrixij(i,j);
-         //   cout<<"i"<<m_system->getDistanceMatrix()[0][0]<<endl;
-           // cout<<"j"<<j<<endl;
+//            cout << m_system->getDistanceMatrixij(i,j) << endl;
+//            cout<<"i"<< i << endl; //m_system->getDistanceMatrix()[0][0]<<endl;
+//            cout<<"j"<<j<<endl;
         }
     }
-    //cout<<interaction_potential<<endl;
+//    cout<<interaction_potential<<endl;
     return interaction_potential;
 }
 

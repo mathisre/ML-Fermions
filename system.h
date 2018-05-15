@@ -19,6 +19,8 @@ public:
     void printOut                   (int cycle);
     double computedistance          (int i);
     double computedistanceABS       (int i, int j);
+    void writeToFile(std::string filename,  std::vector<double> X, std::vector<double>& a_bias, std::vector<double>& b_bias, std::vector<std::vector<double>>& w);
+    void openFile(std::string filename);
    std::vector<std::vector<double>>    computematrixdistance(std::vector<double> &X);
     class WaveFunction*             getWaveFunction()   { return m_waveFunction; }
     class Hamiltonian*              getHamiltonian()    { return m_hamiltonian; }

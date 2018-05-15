@@ -10,10 +10,11 @@
 #include "Math/random.h"
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <time.h>
-#//include "conjugategradient.h"
 
 using namespace std;
+ofstream myFile;
 
 bool System::metropolisStepBruteForce(double GibbsValue, bool interaction,vector<double> &X, vector<double> Hidden, vector<double> a_bias, vector<double> b_bias, vector<std::vector<double>> w) { //Brute Force Metropolis method
     //    int randparticle=Random::nextInt(getNumberOfParticles());
@@ -127,12 +128,10 @@ bool System::metropolisStepImportance(double GibbsValue, bool interaction,vector
 
     //   cout<<X_new[randparticle]<<endl;
     updateDistanceMatrix(X_new, randparticle);
+//    cout << getDistanceMatrixij(0,1) << endl;
 
-//    for(int i=0; i<m_numberOfParticles; i++){
-//        for(int j=0; j<m_numberOfParticles; j++){
-//            cout<<m_distanceMatrix[i][j]<<endl;
-//        }
-//    }
+
+
 
   //  setDistanceMatrix (computematrixdistance(X_new));
 
@@ -156,11 +155,6 @@ bool System::metropolisStepImportance(double GibbsValue, bool interaction,vector
     GreensFunction = exp( GreensFunction );
 
     double psi_new = m_waveFunction->evaluate(GibbsValue,X_new,Hidden,a_bias,b_bias, w);
-    //    cout<<"step: "<<m_timeStep<<endl
-    ;
-    //    cout<<"old: "<<m_psiOld<<endl;
-    //    cout<<"new: "<<psi_new<<endl;
-    //    cout<<"green: "<<GreensFunction<<endl;
 
     double prob = GreensFunction * psi_new * psi_new / (m_psiOld * m_psiOld);
     //cout<<"prob: "<<prob<<endl;
@@ -171,14 +165,14 @@ bool System::metropolisStepImportance(double GibbsValue, bool interaction,vector
         m_psiOld = psi_new;
         X        = X_new;
 
-        //cout<<"ehi"<<endl;
+
+
         // getSampler()->setEnergy(getHamiltonian()->computeLocalEnergy(interaction,X_new,Hidden,a_bias,b_bias, w)); //?? need?
         return true;
     }
 
     // Don't accept new move
     else{
-        // cout<<"ehi"<<endl;
         // m_particles.at(randparticle).setPosition(r_old);
         X = X_old;
 
@@ -266,7 +260,7 @@ void System::runMetropolisSteps(string method, vector<double>&Gradient,int numbe
     setCumulativeGradient(temp);
     setGradient(temp);
     setEnGradient_average(temp);
-bool acceptedStep;
+    bool acceptedStep;
     for (int i=0; i < numberOfMetropolisSteps; i++) {
         if( method == "MetropolisBruteForce" ) acceptedStep =  metropolisStepBruteForce(GibbsValue,interaction, X,Hidden, a_bias, b_bias,w);   //run the system with Brute Force Metropolis
         if( method == "MetropolisImportance" ) acceptedStep =  metropolisStepImportance(GibbsValue, interaction,X,Hidden, a_bias, b_bias,w);    //run the system with Importance Sampling
@@ -592,7 +586,7 @@ int System::computeIndex(int index){
 void System::updateDistanceMatrix(std::vector<double> m_X, int randparticle){
     double temp = 0;
   double  init=computeIndex(randparticle);
-//cout<<"ehi"<<endl;
+
     double part=init/m_numberOfDimensions;
 
             //int init=randparticle*m_numberOfDimensions;
@@ -644,12 +638,13 @@ std::vector<vector<double>> System::computematrixdistance(vector<double>& m_X){
         for(int i = 0;i < j; i += m_numberOfDimensions){
 
             for(int q = 0; q < m_numberOfDimensions; q++){
+//                cout << i << " " << q  << " " << j << endl;
 
                 temp += ( m_X[i + q] - m_X[j + q] ) * ( m_X[i + q] - m_X[j + q] );
 
             }
             //temp=(m_X[i]-m_X[j])*(m_X[i]-m_X[j])+(m_X[i+1]-m_X[j+1])*(m_X[i+1]-m_X[j+1])+(m_X[i+2]-m_X[j+2])*(m_X[i+2]-m_X[j+2]);
-
+//            cout << z << " " << k << endl;
             distancematrix[z][k] = sqrt(temp);
 
             distancematrix[k][z] = distancematrix[z][k];
@@ -804,4 +799,62 @@ double System::findEnergyDerivative()
 
     return 2 * (meanWFderivEloc - meanEnergy*meanWFderiv);
 }
+void System::openFile(string filename){
 
+    myFile.open(filename);
+    myFile << setprecision(12)<<fixed;
+    myFile << setw(5)<<fixed;
+
+    myFile << "Energy  " <<  "St. dev  ";
+
+//    for( int i = 0; i < m_numberOfVisibleNodes; i++){
+
+//        myFile<<"X[" << i << "] "  ;
+//    }
+    for( int i = 0; i < m_numberOfVisibleNodes; i++){
+
+        myFile<<"a[" << i << "] " ;
+    }
+
+    for(int i = 0; i < m_numberOfHiddenNodes; i++){
+
+        myFile<<"b[" << i << "] " ;
+    }
+
+    int z = m_numberOfVisibleNodes + m_numberOfHiddenNodes;
+    for(int i = 0; i < m_numberOfVisibleNodes; i++){
+
+        for(int j = 0; j < m_numberOfHiddenNodes; j++){
+
+            z++;
+              myFile<<"w[" << i << "]["<< j << "] " ;
+        }
+    }
+    myFile << endl;
+}
+
+void System::writeToFile(string filename,  vector<double> X, vector<double>& a_bias, vector<double>& b_bias, vector<std::vector<double>>& w)
+{
+    double energy = getSampler()->getEnergy();
+    myFile  << energy << "  " << sqrt(getSampler()->getCumulativeEnergySquared() - energy*energy) << "  ";
+//    for( int i = 0; i < m_numberOfVisibleNodes; i++){
+
+//        myFile<<X[i]<<"  "  ;
+//    }
+    for( int i = 0; i < m_numberOfVisibleNodes; i++){
+
+        myFile<<a_bias[i]<<"  " ;
+    }
+
+    for(int i = 0; i < m_numberOfHiddenNodes; i++){
+
+        myFile<<b_bias[i]<<"  " ;
+    }
+    for(int i = 0; i < m_numberOfVisibleNodes; i++){
+        for(int j = 0; j < m_numberOfHiddenNodes; j++){
+              myFile<< w[i][j]<<"  " ;
+        }
+    }
+    myFile << endl;
+
+}

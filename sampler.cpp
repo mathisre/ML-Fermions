@@ -8,6 +8,7 @@
 #include "WaveFunctions/wavefunction.h"
 #include <string>
 #include <fstream>
+#include <iomanip>
 using std::cout;
 using std::endl;
 std::ofstream ofile;
@@ -46,8 +47,8 @@ void Sampler::sample(double GibbsValue, bool acceptedStep, bool interaction, vec
 
 
     m_energy = m_system->getHamiltonian()->computeLocalEnergy(GibbsValue, interaction,X,Hidden,a_bias,b_bias,w);
-    //  cout<<"ehi"<<m_energy<<endl;
-    //cout<<getStepNumber()<<endl;
+//      cout<<"ehi"<<m_energy<<endl;
+//    cout<<getStepNumber()<<endl;
 
     if ( (double)getStepNumber() >= m_system->getEquilibrationFraction() * getNumberOfMetropolisSteps() ){
         //sample if the system is at equilibrium
@@ -170,6 +171,9 @@ void Sampler::computeAverages(vector<double> &Gradient) {
 
 void Sampler::openDataFile(std::string filename){
     if (filename != "0") ofile.open(filename);
+
+    ofile << setprecision(12)<<fixed;
+    ofile << setw(5)<<fixed;
 
 }
 
