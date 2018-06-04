@@ -37,7 +37,7 @@ RandomUniform::RandomUniform(System* system, int numberOfParticles, int numberOf
 
 void RandomUniform::setupInitialState(vector<double>& m_X, vector<double>& m_Hidden, vector<double>& m_a_bias, vector<double>& m_b_bias, vector<std::vector<double>>& m_w) {
 
-   double sigma_0=0.001;
+   double sigma_0=0.5;
     int M = m_system->getNumberOfVisibleNodes();
     int N= m_system->getNumberOfHiddenNodes();
 

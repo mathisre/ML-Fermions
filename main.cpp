@@ -34,7 +34,7 @@ int main(){
 
     int numberOfParticles   = 2;        //Number of particles of the system considered
     int numberOfDimensions  = 2;         // NUmber of dimensions
-    int numberOfHiddenNodes = 2;
+    int numberOfHiddenNodes = 4;
     int numberOfVisibleNodes = numberOfDimensions*numberOfParticles;
 
     double sigma =1.0;
@@ -101,26 +101,26 @@ int main(){
     if (interaction == true)
     {
         // SGD data file
-        if( method == "MetropolisBruteForce" ) filename_cycle_data =  "../data/bruCycleDataI_" + to_string(stepLength) + "_n_" + to_string(learning_rate) +  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "MetropolisImportance" ) filename_cycle_data = "../data/impCycleDataI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "Gibbs"                ) filename_cycle_data =  "../data/gibCycledataI_n_" + to_string(learning_rate)+  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisBruteForce" ) filename_cycle_data =  "bruCycleDataI_" + to_string(stepLength) + "_n_" + to_string(learning_rate) +  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisImportance" ) filename_cycle_data = "impCycleDataI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "Gibbs"                ) filename_cycle_data =  "data/gibCycledataI_n_" + to_string(learning_rate)+  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
 
         // Instantaneous energy data file (of bigger run after SGD)
-        if( method == "MetropolisBruteForce" ) finalFilename =  "../data/finalBruCycleDataI_" + to_string(stepLength) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "MetropolisImportance" ) finalFilename = "../data/finalImpCycleDataI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "Gibbs"                ) finalFilename =  "../data/finalGibCycledataI_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisBruteForce" ) finalFilename =  "finalBruCycleDataI_" + to_string(stepLength) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisImportance" ) finalFilename = "finalImpCycleDataI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "Gibbs"                ) finalFilename =  "finalGibCycledataI_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
     }
     else
     {
         // SGD data file
-        if( method == "MetropolisBruteForce" ) filename_cycle_data =  "../data/bruCycleDataNoI_" + to_string(stepLength) + "_n_" + to_string(learning_rate) +  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "MetropolisImportance" ) filename_cycle_data = "../data/impCycleDataNoI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "Gibbs"                ) filename_cycle_data =  "../data/gibCycledataNoI_n_" + to_string(learning_rate)+  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisBruteForce" ) filename_cycle_data =  "bruCycleDataNoI_" + to_string(stepLength) + "_n_" + to_string(learning_rate) +  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisImportance" ) filename_cycle_data = "impCycleDataNoI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "Gibbs"                ) filename_cycle_data =  "gibCycledataNoI_n_" + to_string(learning_rate)+  "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
 
         // Instantaneous energy data file (of bigger run after SGD)
-        if( method == "MetropolisBruteForce" ) finalFilename =  "../data/finalBruCycleDataNoI_" + to_string(stepLength) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "MetropolisImportance" ) finalFilename = "../data/finalImpCycleDataNoI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
-        if( method == "Gibbs"                ) finalFilename =  "../data/finalGibCycledataNoI_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisBruteForce" ) finalFilename =  "finalBruCycleDataNoI_" + to_string(stepLength) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "MetropolisImportance" ) finalFilename = "finalImpCycleDataNoI_" + to_string(timeStep) + "_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
+        if( method == "Gibbs"                ) finalFilename =  "finalGibCycledataNoI_n_" + to_string(learning_rate)+ "_Np_" + to_string(numberOfParticles) + "_Nd_" + to_string(numberOfDimensions) + "_NH_" + to_string(numberOfHiddenNodes) +  "_w_" + to_string(omega) +  ".dat";
 
     }
 
